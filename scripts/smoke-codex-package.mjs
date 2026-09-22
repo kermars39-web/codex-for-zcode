@@ -41,6 +41,7 @@ if (version !== `codex-cli ${CODEX_VERSION}`)
   throw new Error(`Unexpected packaged runtime ${version}`);
 const home = await mkdtemp(join(tmpdir(), "codex-package-smoke-"));
 let child;
+let childClosed;
 try {
   // 独立空登录目录：只握手和读取未登录状态，不访问维护者账号、不发送模型请求。
   child = spawn(binary, ["app-server", "--stdio"], {
@@ -48,6 +49,7 @@ try {
     stdio: ["pipe", "pipe", "pipe"],
     windowsHide: true,
   });
+  childClosed = new Promise((done) => child.once("close", done));
   child.stderr.on("data", () => {});
   await new Promise((done, reject) => {
     const timeout = setTimeout(
@@ -115,10 +117,13 @@ try {
   );
   console.log(JSON.stringify(report));
 } finally {
-  if (child && child.exitCode === null) {
-    const exited = new Promise((done) => child.once("exit", done));
-    child.kill();
-    await exited;
+  if (child?.pid) {
+    // Windows 的 exit 早于管道与目录句柄完全释放；先通过 EOF 正常退出，再等待 close。
+    // 仅清理本次烟测创建的进程和临时目录，不吞掉真实协议失败。
+    child.stdin.end();
+    const stop = setTimeout(() => child.kill(), 5000);
+    await childClosed;
+    clearTimeout(stop);
   }
-  await rm(home, { recursive: true, force: true });
+  await rm(home, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }
