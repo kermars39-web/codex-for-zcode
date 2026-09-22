@@ -7,6 +7,7 @@
 ![Status](https://img.shields.io/badge/status-source_alpha-orange)
 ![Platform](https://img.shields.io/badge/verified-macOS_Apple_Silicon-black)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+[![Checks](https://github.com/kermars39-web/codex-for-zcode/actions/workflows/codex-checks.yml/badge.svg)](https://github.com/kermars39-web/codex-for-zcode/actions/workflows/codex-checks.yml)
 
 已经有 ChatGPT 订阅，也习惯了 ZCode 的中文界面和项目管理？这个项目把 **Codex App Server** 接到 ZCode：登录、任务、多轮续聊、文件修改、命令、审批和历史导入，在同一个工作台里完成。
 

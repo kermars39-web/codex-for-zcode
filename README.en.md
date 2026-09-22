@@ -1,5 +1,7 @@
 # Codex for ZCode
 
+[![Checks](https://github.com/kermars39-web/codex-for-zcode/actions/workflows/codex-checks.yml/badge.svg)](https://github.com/kermars39-web/codex-for-zcode/actions/workflows/codex-checks.yml)
+
 **Use your own ChatGPT subscription and the Codex engine inside ZCode.**
 
 [简体中文](README.md) · [Build guide](docs/QUICKSTART.md) · [Roadmap](docs/ROADMAP.md) · [Issues](https://github.com/kermars39-web/codex-for-zcode/issues)

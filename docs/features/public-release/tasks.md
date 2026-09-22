@@ -4,7 +4,7 @@
   - Scope: 公开导出、忽略规则、许可说明
   - Depends on: None
   - Excludes: 自用数据迁移
-- [ ] T-002 | AC: AC-002 | 解除个人型号限制并保留真实 ID 与别名隔离 | Proof: 模型回归、类型检查、菜单验收
+- [x] T-002 | AC: AC-002 | 解除个人型号限制并保留真实 ID 与别名隔离 | Proof: 29 项回归、类型检查、真实菜单与别名续聊及实际模型 ID 核对通过
   - Scope: 模型偏好、输入菜单、设置
   - Depends on: T-001
   - Excludes: 引擎协议与审批策略
@@ -12,7 +12,7 @@
   - Scope: README、快速开始、贡献与版本说明
   - Depends on: T-002
   - Excludes: 未验证平台发行包
-- [ ] T-004 | AC: AC-004 | 推送公开仓库并核对页面、版本和元数据 | Proof: GitHub API 回读
+- [x] T-004 | AC: AC-004 | 推送公开仓库并核对页面、版本和元数据 | Proof: main、公开权限、主题和 v0.1.0-alpha.1 发行已回读
   - Scope: 新仓库和源码预览发行
   - Depends on: T-003
   - Excludes: 社区代发、刷 Star
