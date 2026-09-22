@@ -64,6 +64,7 @@ if (/from\s*["']@zcode\//.test(readFileSync(resolve(desktop, "out/host/index.js"
 const electron = resolve(root, "node_modules/electron/dist");
 if (!existsSync(electron)) throw new Error("Install Electron before packaging");
 if (mac) await assertMacFramework(resolve(electron, "Electron.app"));
+const artifact = `Codex-for-ZCode-${version}-${mac ? "macos-arm64.zip" : "windows-x64.exe"}`;
 const builder = [
   "--filter",
   "@zcode/desktop",
@@ -75,7 +76,13 @@ const builder = [
   "--publish",
   "never",
 ];
-run("pnpm", [...builder, "--dir", mac ? "--mac" : "--win", `--${process.arch}`]);
+// Windows 必须在同一次 builder 流程中打包并编译 NSIS。--prepackaged 会跳过
+// beforePack，导致原版安装阶段补丁未应用，日志函数未引用并触发 NSIS /WX 失败。
+run("pnpm", [
+  ...builder,
+  ...(mac ? ["--dir", "--mac"] : ["--win", "nsis", `--config.win.artifactName=${artifact}`]),
+  `--${process.arch}`,
+]);
 if (mac) {
   await assertMacFramework(app);
   run("/usr/bin/codesign", [
@@ -92,7 +99,6 @@ if (mac) {
 run(process.execPath, ["scripts/smoke-codex-package.mjs", app]);
 const release = resolve(root, "release-assets");
 await mkdir(release, { recursive: true });
-const artifact = `Codex-for-ZCode-${version}-${mac ? "macos-arm64.zip" : "windows-x64.exe"}`;
 if (mac)
   run("/usr/bin/ditto", [
     "-c",
@@ -103,15 +109,6 @@ if (mac)
     resolve(release, artifact),
   ]);
 else {
-  run("pnpm", [
-    ...builder,
-    "--prepackaged",
-    app,
-    "--win",
-    "nsis",
-    "--x64",
-    `--config.win.artifactName=${artifact}`,
-  ]);
   await copyFile(resolve(desktop, "dist", artifact), resolve(release, artifact));
 }
 await copyFile(
