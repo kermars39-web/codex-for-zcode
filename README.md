@@ -4,8 +4,8 @@
 
 [English](README.en.md) · [构建与使用](docs/QUICKSTART.md) · [路线图](docs/ROADMAP.md) · [反馈问题](https://github.com/kermars39-web/codex-for-zcode/issues)
 
-![Status](https://img.shields.io/badge/status-source_alpha-orange)
-![Platform](https://img.shields.io/badge/verified-macOS_Apple_Silicon-black)
+![Status](https://img.shields.io/badge/status-desktop_preview-orange)
+![Platform](https://img.shields.io/badge/preview-macOS_ARM64_%7C_Windows_x64-black)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 [![Checks](https://github.com/kermars39-web/codex-for-zcode/actions/workflows/codex-checks.yml/badge.svg)](https://github.com/kermars39-web/codex-for-zcode/actions/workflows/codex-checks.yml)
 
@@ -13,7 +13,18 @@
 
 这是基于 [Z.ai / ZCode](https://github.com/zai-org/ZCode) 的社区派生版本，保留原引擎。不是 OpenAI 或 Z.ai 官方产品，也不是往原版里安装的插件。
 
-> **当前为源码预览版。** 已有 macOS Apple Silicon 本机验证；本次公开版另有模型选择回归。尚无公证安装包，Windows / Linux、远程 Codex 未验收。构建出来的应用名称为 **Codex for ZCode**，与原版独立。
+> **当前为桌面预览版。** 应用名称为 **Codex for ZCode**，与原版独立。Mac 已有本机订阅执行验证；Windows 完成原生构建、安装、启动和协议检查，真实订阅的完整执行与历史导入仍待外部测试。
+
+## 下载
+
+| 平台 | 安装包 |
+|---|---|
+| macOS Apple Silicon（M 系列） | [下载 ZIP](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-macos-arm64.zip) |
+| Windows x64（Intel / AMD） | [下载安装器 EXE](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-windows-x64.exe) |
+
+[发行说明与 SHA256 校验和](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.2) · [安装与构建指南](docs/QUICKSTART.md)
+
+Mac 包使用临时签名，尚未获得 Apple 公证；Windows 包暂未使用发行商代码签名。系统可能提示未知开发者，先核对来源与校验和，不需要关闭系统安全保护。
 
 ## 解决什么问题
 
@@ -41,7 +52,7 @@ flowchart LR
 
 界面不接管认证令牌；Codex 管理自己的登录。额外权限请求显示在界面中，由用户处理；断线后不会自动重发可能已经执行的操作。App Server 能力以 [官方接口文档](https://learn.chatgpt.com/docs/app-server) 为准。
 
-## 快速开始
+## 从源码构建
 
 准备 **Apple Silicon Mac、Xcode Command Line Tools、Node 24.14.0、pnpm 10.33.2**。
 
@@ -53,10 +64,10 @@ codex login
 git clone https://github.com/kermars39-web/codex-for-zcode.git
 cd codex-for-zcode
 pnpm install --frozen-lockfile
-node scripts/build-personal-mac.mjs
+node scripts/build-codex-desktop.mjs
 ```
 
-构建结果：`packages/desktop/dist/mac-arm64/Codex for ZCode.app`。从 Finder 打开并创建一个测试项目；遇到系统限制时先核实来源和签名，不需要关闭系统安全保护。详细前置条件、运行时定位和常见问题见 [快速开始](docs/QUICKSTART.md)。
+构建结果：`release-assets/` 中的安装包，以及 `packages/desktop/dist/mac-arm64/Codex for ZCode.app`。Windows x64 构建见快速开始。从 Finder 打开并创建一个测试项目；遇到系统限制时先核实来源和签名，不需要关闭系统安全保护。详细前置条件、运行时定位和常见问题见 [快速开始](docs/QUICKSTART.md)。
 
 **第一条体验路径：** 新建任务 → 选择目录和真实模型 → 提出小任务 → 按需审批 → 查看修改。之后可以从侧栏“任务”菜单导入自己的 Desktop 历史。
 
@@ -73,7 +84,7 @@ node scripts/build-personal-mac.mjs
 ## 开发与贡献
 
 ```bash
-pnpm exec tsx --test tests/codex-engine/*.test.ts
+pnpm exec tsx --test tests/codex-engine/*.test.ts tests/codex-engine/*.test.mjs
 pnpm typecheck
 pnpm lint
 pnpm architecture:check --changed

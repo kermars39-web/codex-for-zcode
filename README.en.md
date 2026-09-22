@@ -8,7 +8,15 @@
 
 Community derivative of [Z.ai / ZCode](https://github.com/zai-org/ZCode), with a local [Codex App Server](https://learn.chatgpt.com/docs/app-server) adapter. Keep ZCode’s workspace UI while Codex handles authentication, sessions, tool execution, file changes and approvals. The original ZCode engine remains available.
 
-**Source alpha.** Tested locally on Apple Silicon macOS; no notarized installer is published. Windows, Linux and remote Codex are not validated. The built app is named **Codex for ZCode** and uses separate ZCode storage.
+**Desktop preview.** The app is named **Codex for ZCode** and uses separate ZCode storage. macOS has prior local subscription execution coverage. Windows has native build, installer, desktop-startup and protocol smoke checks; full subscription execution and history import on Windows still need external testing.
+
+## Download
+
+- [macOS Apple Silicon ZIP](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-macos-arm64.zip)
+- [Windows x64 installer](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-windows-x64.exe)
+- [Release notes, platform reports and SHA256 checksums](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.2)
+
+macOS is ad-hoc signed, not notarized. Windows does not yet have a publisher code-signing certificate. Verify the source and checksum if the OS shows a security prompt; do not disable system security protections.
 
 ## Why
 
@@ -29,7 +37,7 @@ codex login
 git clone https://github.com/kermars39-web/codex-for-zcode.git
 cd codex-for-zcode
 pnpm install --frozen-lockfile
-node scripts/build-personal-mac.mjs
+node scripts/build-codex-desktop.mjs
 ```
 
 Output: `packages/desktop/dist/mac-arm64/Codex for ZCode.app`. Open it from Finder, choose a test directory and a model, then submit a small task. See [build and troubleshooting details](docs/QUICKSTART.md).
@@ -43,7 +51,7 @@ Desktop-exclusive browser tools/connectors, phone control and remote Codex are n
 ## Contribute
 
 ```bash
-pnpm exec tsx --test tests/codex-engine/*.test.ts
+pnpm exec tsx --test tests/codex-engine/*.test.ts tests/codex-engine/*.test.mjs
 pnpm typecheck
 pnpm lint
 pnpm architecture:check --changed

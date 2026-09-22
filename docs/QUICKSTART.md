@@ -1,11 +1,25 @@
 # 构建与使用 / Build and use
 
-本说明针对源码 alpha 的 Apple Silicon macOS 路径，不适用于原版 ZCode 安装包。应用名称为 Codex for ZCode。
+本说明针对社区派生版 **Codex for ZCode**，不适用于原版 ZCode 安装包。
+
+## 直接安装
+
+到 [v0.1.0-alpha.2 发行页](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.2) 选择对应平台文件：
+
+- **macOS Apple Silicon**：下载 ZIP，解压，将 `.app` 拖到应用程序目录后打开。Intel Mac 不支持此包。
+- **Windows x64**：下载 EXE，安装到用户目录后打开。Windows ARM、WSL 内的 Codex 配置与历史不在本次自动适配范围。
+- 首次打开可退出原版引导，再从顶部“任务更多操作 → 引擎与模型设置”登录自己的 ChatGPT。客户端不附带账号，不要求先安装 Node 或独立 Codex CLI。
+
+Mac 仅临时签名、未 Apple 公证；Windows 未发行商签名。先核对仓库和 `SHA256SUMS.txt`，遵守系统及组织安全策略，不关闭安全保护。
+
+校验下载文件：Mac 在安装包所在目录运行 `shasum -a 256 Codex-for-ZCode-0.1.0-alpha.2-macos-arm64.zip`；Windows 在 PowerShell 运行 `Get-FileHash .\Codex-for-ZCode-0.1.0-alpha.2-windows-x64.exe -Algorithm SHA256`。将结果与同一发行页的 `SHA256SUMS.txt` 对照，必须完全一致（字母大小写不影响比较）。
+
+以下为开发者从源码构建步骤。
 
 ## 1. 前置条件
 
 - Git、Node 24.14.0、pnpm 10.33.2；版本见 `mise.toml`。
-- Xcode Command Line Tools（包括 clang 与 swiftc）。
+- macOS：Xcode Command Line Tools（包括 clang 与 swiftc）。Windows x64：PowerShell 与原生模块所需的 C++ 构建工具。
 - 自己可登录的 Codex / ChatGPT 账号，以及可用的官方服务访问条件。
 - 正常的 npm、Electron 与构建资源下载条件；首次构建会下载依赖并编译原生组件。
 
@@ -19,16 +33,16 @@ codex login
 git clone https://github.com/kermars39-web/codex-for-zcode.git
 cd codex-for-zcode
 pnpm install --frozen-lockfile
-node scripts/build-personal-mac.mjs
+node scripts/build-codex-desktop.mjs
 ```
 
-运行时固定为 0.155.1，以降低 Desktop 历史格式差异。脚本从 `npm root -g` 定位原生可执行文件，要求同目录存在配套 `codex-code-mode-host`；失败时会明确退出。非 npm 安装可通过 `ZCODE_CODEX_NATIVE_BINARY=/absolute/path/to/native/codex` 指定原生文件，不能指向 JavaScript 启动包装器。
+运行时固定为 0.155.1，以降低 Desktop 历史格式差异。脚本从 `npm root -g` 定位原生可执行文件，保留官方 `bin`、`codex-path` 与 `codex-resources` 布局，包含配套 code-mode-host 和 Windows 沙箱程序；失败时会明确退出。非 npm 安装可通过 `ZCODE_CODEX_NATIVE_BINARY=/absolute/path/to/native/codex` 指定原生文件，不能指向 JavaScript 启动包装器。
 
-默认跳过原版远程资源构建。已有完整本地资源时可使用 `node scripts/build-personal-mac.mjs --reuse-assets`；第一次不能跳过准备。
+默认跳过原版远程资源构建。已有完整本地资源时可使用 `node scripts/build-codex-desktop.mjs --reuse-assets`；第一次不能跳过准备。
 
 ## 3. 打开并开始
 
-构建成功后，在 Finder 打开 `packages/desktop/dist/mac-arm64/Codex for ZCode.app`。这是本地临时签名，不是 Apple 公证发行包；不建议关闭 Gatekeeper。先在测试目录验证。
+构建成功后，安装包在 `release-assets/`。Mac 可在 Finder 打开 `packages/desktop/dist/mac-arm64/Codex for ZCode.app`，Windows 可运行生成的 EXE 安装器。先在测试目录验证。
 
 1. 顶部选择工作目录，底部选择账号实际提供的模型。
 2. 如果没有登录，从“…” → “引擎与模型设置”发起 ChatGPT 登录。
@@ -62,7 +76,7 @@ node scripts/build-personal-mac.mjs
 ## 维护者检查
 
 ```bash
-pnpm exec tsx --test tests/codex-engine/*.test.ts
+pnpm exec tsx --test tests/codex-engine/*.test.ts tests/codex-engine/*.test.mjs
 pnpm typecheck
 pnpm lint
 pnpm architecture:check --changed
@@ -71,3 +85,5 @@ pnpm architecture:check --changed
 前身自用构建有本机真实执行、审批、导入、停止和恢复验证。公开版模型范围已经调整，不能由这些记录推出所有账号、平台和配置都已验收。公开版结果见 `features/public-release/acceptance.md`。
 
 以上检查完成后再单独打包，**不要同时运行 typecheck 和桌面构建**：上游 TypeScript 工程会写入 `out/host`，可能覆盖打包入口。构建脚本会检测未打包的 workspace 引用并停止。
+
+最新双平台发行验收见 [桌面发行记录](features/desktop-release/acceptance.md)。Windows 的安装、启动与 App Server 协议烟测不等于真实订阅账号的完整执行验收。
