@@ -1859,7 +1859,8 @@ app.on("second-instance", (_event, argv, _workingDirectory, additionalData) => {
 
 app.whenReady().then(async () => {
   if (app.isPackaged && !process.env.ZCODE_CODEX_BINARY) {
-    process.env.ZCODE_CODEX_BINARY = join(process.resourcesPath, "codex", "codex");
+    // 保持官方包的 bin/resources 相对布局，Windows 使用原生 .exe 与配套沙箱程序。
+    process.env.ZCODE_CODEX_BINARY = join(process.resourcesPath, "codex", "bin", process.platform === "win32" ? "codex.exe" : "codex");
   }
   markMainLaunchAppReady();
   installLocalMediaPreviewProtocol(session.defaultSession.protocol, {

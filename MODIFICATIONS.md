@@ -14,6 +14,7 @@ Existing files changed from the upstream baseline are listed below and carry mod
 - `packages/desktop/electron-builder.config.js`
 - `packages/desktop/package.json`
 - `packages/desktop/scripts/build-macos-window-bounds.mjs`
+- `packages/desktop/scripts/build-metadata.mjs`
 - `packages/desktop/scripts/desktop-product-identity.mjs`
 - `packages/desktop/scripts/prepare-runtime-assets.mjs`
 - `packages/desktop/src/host/index.ts`

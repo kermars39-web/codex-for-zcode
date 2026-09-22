@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -84,7 +85,7 @@ export function collectBuildMetadata() {
   const desktopPackageJson = readJson(resolve(desktopDir, "package.json"));
 
   return {
-    appVersion: normalizeVersion(rootPackageJson.version),
+    appVersion: normalizeVersion(process.env.CODEX_FOR_ZCODE_VERSION || rootPackageJson.version),
     buildCommitId: resolveCommitId(),
     buildTime: new Date().toISOString(),
     electronBuilderVersion: resolveInstalledPackageVersion(

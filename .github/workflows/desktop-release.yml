@@ -1,0 +1,91 @@
+name: Desktop preview packages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-preview-release
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            platform: macos-arm64
+          - runner: windows-latest
+            platform: windows-x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      CODEX_FOR_ZCODE_VERSION: 0.1.0-alpha.2
+      ZCODE_ENV: production
+      ZCODE_SKIP_REMOTE_ASSETS: '1'
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install -g @openai/codex@0.155.1
+      - run: pnpm exec tsx --test tests/codex-engine/*.test.ts tests/codex-engine/*.test.mjs
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm architecture:check
+      - name: Build native package and test bundled Codex
+        run: node scripts/build-codex-desktop.mjs
+      - name: Verify macOS desktop startup
+        if: runner.os == 'macOS'
+        run: node scripts/smoke-codex-desktop.mjs "packages/desktop/dist/mac-arm64/Codex for ZCode.app/Contents/MacOS/Codex for ZCode"
+      - name: Install and start Windows package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem release-assets/*windows-x64.exe).FullName
+          $destination = Join-Path $env:RUNNER_TEMP 'codex-for-zcode-installed'
+          $process = Start-Process -FilePath $installer -ArgumentList '/S', "/D=$destination" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "NSIS install exited $($process.ExitCode)" }
+          $app = Join-Path $destination 'Codex for ZCode.exe'
+          if (!(Test-Path $app)) { throw 'Installed application missing' }
+          $expected = (Get-FileHash 'packages/desktop/dist/win-unpacked/resources/app.asar' -Algorithm SHA256).Hash
+          $actual = (Get-FileHash (Join-Path $destination 'resources/app.asar') -Algorithm SHA256).Hash
+          if ($expected -ne $actual) { throw 'Installed application differs from built package' }
+          node scripts/smoke-codex-package.mjs "$destination"
+          if ($LASTEXITCODE -ne 0) { throw 'Installed runtime smoke failed' }
+          node scripts/smoke-codex-desktop.mjs "$app"
+          if ($LASTEXITCODE -ne 0) { throw 'Installed desktop smoke failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.platform }}
+          path: release-assets/
+          if-no-files-found: error
+          compression-level: 0
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Assemble checksums and draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd release-assets
+          cat *.sha256 > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+          cd ..
+          gh release create v0.1.0-alpha.2 --draft --prerelease --target "$GITHUB_SHA" --title 'v0.1.0-alpha.2 · macOS & Windows preview' --notes-file docs/RELEASE-v0.1.0-alpha.2.md
+          gh release upload v0.1.0-alpha.2 release-assets/*.zip release-assets/*.exe release-assets/SHA256SUMS.txt release-assets/*-smoke.json

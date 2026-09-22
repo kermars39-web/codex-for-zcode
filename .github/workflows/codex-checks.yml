@@ -25,7 +25,7 @@ jobs:
           node-version: 24.14.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: pnpm exec tsx --test tests/codex-engine/*.test.ts
+      - run: pnpm exec tsx --test tests/codex-engine/*.test.ts tests/codex-engine/*.test.mjs
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm architecture:check

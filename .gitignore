@@ -76,3 +76,5 @@ packages/desktop/.e2e-network-capture/
 .local-evidence/
 .local-runtime/
 packages/desktop/bundled-codex/
+# Generated desktop release assets, never source or user data.
+release-assets/
