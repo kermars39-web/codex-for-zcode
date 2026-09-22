@@ -4,15 +4,15 @@
 
 ## 直接安装
 
-到 [v0.1.0-alpha.2 发行页](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.2) 选择对应平台文件：
+到 [v0.1.0-alpha.3 发行页](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.3) 选择对应平台文件：
 
 - **macOS Apple Silicon**：下载 ZIP，解压，将 `.app` 拖到应用程序目录后打开。Intel Mac 不支持此包。
 - **Windows x64**：下载 EXE，安装到用户目录后打开。Windows ARM、WSL 内的 Codex 配置与历史不在本次自动适配范围。
-- 首次打开可退出原版引导，再从顶部“任务更多操作 → 引擎与模型设置”登录自己的 ChatGPT。客户端不附带账号，不要求先安装 Node 或独立 Codex CLI。
+- 首次打开可退出原版引导，再从输入框“模型菜单 → 引擎与模型设置”登录自己的 ChatGPT。客户端不附带账号，不要求先安装 Node 或独立 Codex CLI。
 
 Mac 仅临时签名、未 Apple 公证；Windows 未发行商签名。先核对仓库和 `SHA256SUMS.txt`，遵守系统及组织安全策略，不关闭安全保护。
 
-校验下载文件：Mac 在安装包所在目录运行 `shasum -a 256 Codex-for-ZCode-0.1.0-alpha.2-macos-arm64.zip`；Windows 在 PowerShell 运行 `Get-FileHash .\Codex-for-ZCode-0.1.0-alpha.2-windows-x64.exe -Algorithm SHA256`。将结果与同一发行页的 `SHA256SUMS.txt` 对照，必须完全一致（字母大小写不影响比较）。
+校验下载文件：Mac 在安装包所在目录运行 `shasum -a 256 Codex-for-ZCode-0.1.0-alpha.3-macos-arm64.zip`；Windows 在 PowerShell 运行 `Get-FileHash .\Codex-for-ZCode-0.1.0-alpha.3-windows-x64.exe -Algorithm SHA256`。将结果与同一发行页的 `SHA256SUMS.txt` 对照，必须完全一致（字母大小写不影响比较）。
 
 以下为开发者从源码构建步骤。
 
@@ -45,7 +45,7 @@ node scripts/build-codex-desktop.mjs
 构建成功后，安装包在 `release-assets/`。Mac 可在 Finder 打开 `packages/desktop/dist/mac-arm64/Codex for ZCode.app`，Windows 可运行生成的 EXE 安装器。先在测试目录验证。
 
 1. 顶部选择工作目录，底部选择账号实际提供的模型。
-2. 如果没有登录，从“…” → “引擎与模型设置”发起 ChatGPT 登录。
+2. 如果没有登录，从输入框模型菜单 → “引擎与模型设置”发起 ChatGPT 登录；已有任务也可从顶部“…”进入。
 3. 输入小任务。Enter 发送，Shift+Enter 换行。额外权限请求按范围确认。
 4. 模型别名可在设置中填写与恢复默认；仅改变显示，不改变真实请求。
 5. 侧栏“任务”菜单可导入历史；在项目视图中它位于项目列表下方。

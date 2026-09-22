@@ -12,11 +12,13 @@ Community derivative of [Z.ai / ZCode](https://github.com/zai-org/ZCode), with a
 
 ## Download
 
-- [macOS Apple Silicon ZIP](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-macos-arm64.zip)
-- [Windows x64 installer](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-windows-x64.exe)
-- [Release notes, platform reports and SHA256 checksums](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.2)
+- [macOS Apple Silicon ZIP](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.3/Codex-for-ZCode-0.1.0-alpha.3-macos-arm64.zip)
+- [Windows x64 installer](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.3/Codex-for-ZCode-0.1.0-alpha.3-windows-x64.exe)
+- [Release notes, platform reports and SHA256 checksums](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.3)
 
 macOS is ad-hoc signed, not notarized. Windows does not yet have a publisher code-signing certificate. Verify the source and checksum if the OS shows a security prompt; do not disable system security protections.
+
+This release reuses native ZCode components for the start screen, user bubbles and reasoning display. Imported attachments are presented as file entries without rewriting the original history.
 
 ## Why
 

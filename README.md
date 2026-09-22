@@ -19,12 +19,14 @@
 
 | 平台 | 安装包 |
 |---|---|
-| macOS Apple Silicon（M 系列） | [下载 ZIP](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-macos-arm64.zip) |
-| Windows x64（Intel / AMD） | [下载安装器 EXE](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.2/Codex-for-ZCode-0.1.0-alpha.2-windows-x64.exe) |
+| macOS Apple Silicon（M 系列） | [下载 ZIP](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.3/Codex-for-ZCode-0.1.0-alpha.3-macos-arm64.zip) |
+| Windows x64（Intel / AMD） | [下载安装器 EXE](https://github.com/kermars39-web/codex-for-zcode/releases/download/v0.1.0-alpha.3/Codex-for-ZCode-0.1.0-alpha.3-windows-x64.exe) |
 
-[发行说明与 SHA256 校验和](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.2) · [安装与构建指南](docs/QUICKSTART.md)
+[发行说明与 SHA256 校验和](https://github.com/kermars39-web/codex-for-zcode/releases/tag/v0.1.0-alpha.3) · [安装与构建指南](docs/QUICKSTART.md)
 
 Mac 包使用临时签名，尚未获得 Apple 公证；Windows 包暂未使用发行商代码签名。系统可能提示未知开发者，先核对来源与校验和，不需要关闭系统安全保护。
+
+本版更新：新建首页、用户气泡和思考过程复用原版组件；历史附件显示更清晰，原始记录保持不变。
 
 ## 解决什么问题
 

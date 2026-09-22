@@ -46,5 +46,6 @@ Existing files changed from the upstream baseline are listed below and carry mod
 - `packages/ui/src/root/useRootWorkspaceActions.ts`
 - `packages/ui/src/store/zcodeSessionStoreNavigation.ts`
 - `packages/ui/src/store/zcodeSessionStoreTypes.ts`
+- `packages/ui/src/v4/ConversationUserInputBody.tsx` — accept string record IDs for Codex user-message presentation; retain original ZCode behavior.
 - `NOTICE.md`
 - `pnpm-workspace.yaml` — disable native postinstall-result caching to preserve Electron framework symlinks.

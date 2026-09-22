@@ -12,7 +12,7 @@
   - Scope: 本机可回退安装和验收记录
   - Depends on: T-001, T-002
   - Excludes: 公开发布
-- [ ] T-004 | AC: AC-005 | 发布源码与双平台 alpha.3 预览包 | Proof: GitHub Actions、Release 文件与校验和
+- [x] T-004 | AC: AC-005 | 发布源码与双平台 alpha.3 预览包 | Proof: GitHub Actions、Release 文件与校验和
   - Scope: 现有公开仓库、原生平台打包和下载入口
   - Depends on: T-001, T-002, T-003
   - Excludes: Windows 真实订阅账号的完整执行与审批验收
