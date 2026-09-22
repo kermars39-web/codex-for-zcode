@@ -4,7 +4,7 @@
   "description": "ZCode Desktop App",
   "author": "ZCode",
   "type": "module",
-  "main": "out/main/index.js",
+  "main": "out/main/launch.js",
   "scripts": {
     "pre-dev": "node scripts/ensure-local-runtime-assets.mjs && node -e \"require('node:fs').rmSync('./out',{recursive:true,force:true})\"",
     "dev": "node ../../scripts/dev-desktop-env.mjs production",
@@ -82,5 +82,6 @@
     "typescript": "^6.0.2",
     "vite": "^8.0.2"
   },
-  "productName": "ZCode"
+  "productName": "ZCode",
+  "x-codex-for-zcode-notice": "Modified by Codex for ZCode contributors; see MODIFICATIONS.md."
 }

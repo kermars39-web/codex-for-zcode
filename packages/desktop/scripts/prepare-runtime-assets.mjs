@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 
 import process from "node:process";
 import { dirname, resolve } from "node:path";
@@ -62,3 +63,4 @@ if (!shouldSkipRemoteAssets) {
 for (const scriptName of localRuntimeScripts) {
   runTimedPnpmScript(scriptName);
 }
+runCommand(process.execPath, [resolve(scriptDir, "prepare-codex-runtime.mjs")], { cwd: desktopRoot, env: process.env });

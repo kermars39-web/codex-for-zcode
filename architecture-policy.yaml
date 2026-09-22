@@ -1,3 +1,4 @@
+# Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 version: 1
 
 # 存量模块先标记为 legacy；新模块或完成迁移的模块设置 managed: true。
@@ -31,6 +32,14 @@ modules:
     layers: { domain: domain, app: app, adapters: adapters }
     layerOrder: [domain, app, adapters]
     owner: desktop-settings
+  - id: codex-engine
+    roots: [packages/services/src/codex-engine]
+    managed: true
+    requires: [rpc]
+    publicEntrypoints: [packages/services/src/codex-engine/contract.ts, packages/services/src/codex-engine/node.ts]
+    layers: { domain: domain, app: app, adapters: adapters }
+    layerOrder: [domain, app, adapters]
+    owner: local-host
   - id: client
     roots: [packages/client/src]
     managed: false

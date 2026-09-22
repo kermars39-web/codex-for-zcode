@@ -1,3 +1,6 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
+import { CodexChatPane } from "@/codex/CodexChatPane.js";
+import { CODEX_DRAFT, useCodexUiStore } from "@/store/codexUiStore.js";
 /* eslint-disable max-lines -- workspace shell 当前集中编排 sidebar、chat、terminal 和 browser pane 的布局联动，先保持单文件收口，避免为满足行数限制打散关键布局状态。*/
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -816,9 +819,41 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
       ...request,
     });
   }, []);
+  const codexWorkspaceKey = workspaceIdentity?.trim() || workspaceAbsPath;
+  const [codexTitleHost, setCodexTitleHost] = useState<HTMLDivElement | null>(null);
+  const codexSelection = useCodexUiStore((state) => state.selection[codexWorkspaceKey]);
+  const preferredEngine = useCodexUiStore((state) => state.preferredEngine);
+  useEffect(() => {
+    // 启动后原引擎异步建立草稿不应抢走已显示的 Codex 首页。
+    if (
+      isDesktop &&
+      !workspaceRemoteSessionId &&
+      codexSelection === undefined &&
+      !activeTaskId &&
+      preferredEngine === "codex"
+    ) {
+      useCodexUiStore.getState().select(codexWorkspaceKey, CODEX_DRAFT, workspaceAbsPath);
+    }
+  }, [
+    isDesktop,
+    workspaceRemoteSessionId,
+    codexSelection,
+    activeTaskId,
+    preferredEngine,
+    codexWorkspaceKey,
+    workspaceAbsPath,
+  ]);
+  const showCodex =
+    isDesktop &&
+    !workspaceRemoteSessionId &&
+    (typeof codexSelection === "string" ||
+      (codexSelection === undefined && !activeTaskId && preferredEngine === "codex"));
   const showChatMainView = useCallback(() => {
     onWorkspaceMainViewChange("chat");
   }, [onWorkspaceMainViewChange]);
+  useEffect(() => {
+    if (typeof codexSelection === "string") showChatMainView();
+  }, [codexSelection, showChatMainView]);
   const primaryNavigationBack =
     workspaceMainView === "plugin-store" ? handleManageInstalledPlugins : handleTaskNavBack;
   const canPrimaryNavigationBack = workspaceMainView === "plugin-store" || canTaskNavBack;
@@ -835,7 +870,15 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
       showChatMainView();
       onCreateTask(request);
     },
-    [onCreateTask, showChatMainView, workspaceReadOnlyReason],
+    [
+      onCreateTask,
+      showChatMainView,
+      workspaceReadOnlyReason,
+      isDesktop,
+      workspaceRemoteSessionId,
+      preferredEngine,
+      codexWorkspaceKey,
+    ],
   );
   const shellWorkbenchBinding = useMemo<WorkbenchSessionBinding | null>(
     () =>
@@ -874,6 +917,9 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
       expectedUnreadAt?: number,
     ) => {
       {
+        useCodexUiStore
+          .getState()
+          .select(targetWorkspaceIdentity?.trim() || targetWorkspacePath, null);
         const workspaceResult = ensureTaskNavigationWorkspace({
           workspacePath: targetWorkspacePath,
           workspaceIdentity: targetWorkspaceIdentity,
@@ -1092,6 +1138,18 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
       createSource?: import("@zcode/shared").SessionCreateSource,
     ) => {
       showChatMainView();
+      const target = workspaceTabs.find(
+        (tab) =>
+          (tab.workspaceIdentity || tab.workspacePath) ===
+          (targetWorkspaceIdentity || targetWorkspacePath),
+      );
+      if (isDesktop && !target?.remoteSessionId && preferredEngine === "codex") {
+        useCodexUiStore
+          .getState()
+          .select(targetWorkspaceIdentity || targetWorkspacePath, CODEX_DRAFT, targetWorkspacePath);
+      } else {
+        useCodexUiStore.getState().select(targetWorkspaceIdentity || targetWorkspacePath, null);
+      }
       handleStartDraftInWorkspace(
         targetWorkspacePath,
         targetWorkspaceIdentity,
@@ -1099,7 +1157,7 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
         createSource,
       );
     },
-    [handleStartDraftInWorkspace, showChatMainView],
+    [handleStartDraftInWorkspace, showChatMainView, workspaceTabs, isDesktop, preferredEngine],
   );
   const handleCreateProjectDraft = useCallback(
     (path: string, identity?: string) =>
@@ -1693,7 +1751,23 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
                       >
                         <WorkspaceHeader
                           reserveWindowControls={!isSidePaneVisible}
-                          variant={activeTaskId === null ? "draft" : "task"}
+                          variant={
+                            showCodex
+                              ? codexSelection && codexSelection !== CODEX_DRAFT
+                                ? "task"
+                                : "draft"
+                              : activeTaskId === null
+                                ? "draft"
+                                : "task"
+                          }
+                          titleContent={
+                            showCodex ? (
+                              <div
+                                ref={setCodexTitleHost}
+                                className="flex min-w-0 items-center [app-region:no-drag]"
+                              />
+                            ) : undefined
+                          }
                           draftDropTargetController={
                             activeTaskId === null ? draftHeaderDropTargetController : undefined
                           }
@@ -1707,7 +1781,7 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
                           activeTaskTitle={activeTaskTitle}
                           activeTaskChangeSummary={activeTaskChangeSummary}
                           hasUpdateReady={hasUpdateStatusButton}
-                          activeTaskId={activeTaskId}
+                          activeTaskId={showCodex ? null : activeTaskId}
                           user={user}
                           activeTraceId={activeTraceId}
                           activeSessionId={activeSessionId}
@@ -1836,63 +1910,78 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
                                   永远停在 draft。v4 语义下 sessionId ≡ taskId，meta 只服务 Header 显示。
                                   桌面主区升级为分屏宿主（Layout/Focus 两层）；primary pane
                                   绑定语义与 testid 契约（paneId=workspace-main）不变。 */}
-                            <V4WorkspaceChatArea
-                              readOnly={Boolean(workspaceReadOnlyReason)}
-                              foregroundEnabled={isWorkspaceVisible}
-                              workspacePath={workspaceAbsPath}
-                              workspaceIdentity={workspaceIdentity}
-                              isDesktop={isDesktop === true}
-                              remoteSessionId={workspaceRemoteSessionId}
-                              sessionId={activeTaskId}
-                              activeSelectionSideChatSessionId={activeSelectionSideChatSessionId}
-                              provider={activeTaskProvider ?? undefined}
-                              onSessionCreated={handleV4SessionCreated}
-                              onSessionDeleted={handleV4SessionDeleted}
-                              draftComposerHeader={draftComposerHeader}
-                              onPrimaryDraftDropTargetControllerChange={
-                                setDraftHeaderDropTargetController
-                              }
-                              gitSummary={gitState.summary}
-                              gitDirtyFileCount={gitDirtyFileCount}
-                              activeTaskChangeSummary={activeTaskChangeSummary}
-                              gitWorktreeReviewSourceId={gitWorktreeReviewSourceId}
-                              gitWorktreeChangeSummary={gitWorktreeChangeSummary}
-                              summaryPanelVariantOverride={summaryPanelVariantOverride}
-                              onSummaryPanelVariantOverrideChange={
-                                onSummaryPanelVariantOverrideChange
-                              }
-                              onRefreshGit={handleRefreshGit}
-                              onOpenGitReview={handleOpenGitReview}
-                              onPaneActiveSessionChange={handlePaneActiveSessionChange}
-                              onOpenBrowserUrl={handleOpenBrowserUrl}
-                              onOpenAutomationsMain={handleOpenAutomations}
-                              onOpenCodeViewer={handleOpenCodeViewer}
-                              onAutoOpenAssistantPptx={
-                                isDesktop ? handleAutoOpenAssistantPptx : undefined
-                              }
-                              onOpenBackgroundBash={handleOpenBackgroundBash}
-                              onOpenSubagentSession={handleOpenSubagentSession}
-                              onOpenSubagentDirectory={handleOpenSubagentDirectory}
-                              onSyncSubagentSessionTabs={handleSyncSubagentSessionTabs}
-                              onOpenSelectionSideChat={handleOpenSelectionSideChat}
-                              onOpenPlanDetail={handleOpenPlanDetail}
-                              onOpenWorkflowRun={handleOpenWorkflowRun}
-                              onOpenWorkflowArtifact={handleOpenWorkflowArtifact}
-                              onOpenWorkflowRunDirectory={handleOpenWorkflowRunDirectory}
-                              onOpenWorkflowActorSession={handleOpenWorkflowActorSession}
-                              onOpenWorkflowWorkspace={handleOpenWorkflowWorkspace}
-                              onOpenFileLink={handleOpenMarkdownFileLink}
-                              conversationFindQuery={conversationFindQuery}
-                              conversationFindActiveIndex={conversationFindActiveIndex}
-                              conversationFindNavigationRequestId={
-                                conversationFindNavigationRequestId
-                              }
-                              onConversationFindMatchStateChange={
-                                onConversationFindMatchStateChange
-                              }
-                              searchResultHighlightRequest={activeSearchResultHighlightRequest}
-                              onSearchResultHighlightDone={onSearchResultHighlightDone}
-                            />
+                            {showCodex ? (
+                              <CodexChatPane
+                                titleHost={codexTitleHost}
+                                workspacePath={workspaceAbsPath}
+                                workspaceIdentity={workspaceIdentity}
+                                taskId={
+                                  codexSelection && codexSelection !== CODEX_DRAFT
+                                    ? codexSelection
+                                    : undefined
+                                }
+                                onUseOriginalEngine={() => onCreateTask({ engineKind: "zcode" })}
+                                onOpenFileLink={handleOpenMarkdownFileLink}
+                              />
+                            ) : (
+                              <V4WorkspaceChatArea
+                                readOnly={Boolean(workspaceReadOnlyReason)}
+                                foregroundEnabled={isWorkspaceVisible}
+                                workspacePath={workspaceAbsPath}
+                                workspaceIdentity={workspaceIdentity}
+                                isDesktop={isDesktop === true}
+                                remoteSessionId={workspaceRemoteSessionId}
+                                sessionId={activeTaskId}
+                                activeSelectionSideChatSessionId={activeSelectionSideChatSessionId}
+                                provider={activeTaskProvider ?? undefined}
+                                onSessionCreated={handleV4SessionCreated}
+                                onSessionDeleted={handleV4SessionDeleted}
+                                draftComposerHeader={draftComposerHeader}
+                                onPrimaryDraftDropTargetControllerChange={
+                                  setDraftHeaderDropTargetController
+                                }
+                                gitSummary={gitState.summary}
+                                gitDirtyFileCount={gitDirtyFileCount}
+                                activeTaskChangeSummary={activeTaskChangeSummary}
+                                gitWorktreeReviewSourceId={gitWorktreeReviewSourceId}
+                                gitWorktreeChangeSummary={gitWorktreeChangeSummary}
+                                summaryPanelVariantOverride={summaryPanelVariantOverride}
+                                onSummaryPanelVariantOverrideChange={
+                                  onSummaryPanelVariantOverrideChange
+                                }
+                                onRefreshGit={handleRefreshGit}
+                                onOpenGitReview={handleOpenGitReview}
+                                onPaneActiveSessionChange={handlePaneActiveSessionChange}
+                                onOpenBrowserUrl={handleOpenBrowserUrl}
+                                onOpenAutomationsMain={handleOpenAutomations}
+                                onOpenCodeViewer={handleOpenCodeViewer}
+                                onAutoOpenAssistantPptx={
+                                  isDesktop ? handleAutoOpenAssistantPptx : undefined
+                                }
+                                onOpenBackgroundBash={handleOpenBackgroundBash}
+                                onOpenSubagentSession={handleOpenSubagentSession}
+                                onOpenSubagentDirectory={handleOpenSubagentDirectory}
+                                onSyncSubagentSessionTabs={handleSyncSubagentSessionTabs}
+                                onOpenSelectionSideChat={handleOpenSelectionSideChat}
+                                onOpenPlanDetail={handleOpenPlanDetail}
+                                onOpenWorkflowRun={handleOpenWorkflowRun}
+                                onOpenWorkflowArtifact={handleOpenWorkflowArtifact}
+                                onOpenWorkflowRunDirectory={handleOpenWorkflowRunDirectory}
+                                onOpenWorkflowActorSession={handleOpenWorkflowActorSession}
+                                onOpenWorkflowWorkspace={handleOpenWorkflowWorkspace}
+                                onOpenFileLink={handleOpenMarkdownFileLink}
+                                conversationFindQuery={conversationFindQuery}
+                                conversationFindActiveIndex={conversationFindActiveIndex}
+                                conversationFindNavigationRequestId={
+                                  conversationFindNavigationRequestId
+                                }
+                                onConversationFindMatchStateChange={
+                                  onConversationFindMatchStateChange
+                                }
+                                searchResultHighlightRequest={activeSearchResultHighlightRequest}
+                                onSearchResultHighlightDone={onSearchResultHighlightDone}
+                              />
+                            )}
                           </ScopedErrorBoundary>
                         </main>
                       )}

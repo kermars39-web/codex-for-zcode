@@ -1,4 +1,6 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import { createLocalTtftExporter } from "./localTtftExporter.js";
+import { mkdir } from "node:fs/promises";
 /* eslint-disable max-lines */
 import "./desktopEarlyDataBaseDirBootstrap.js";
 import "./desktopEarlyChromiumHardwareAccelerationBootstrap.js";
@@ -58,6 +60,7 @@ import {
   captureLoginShellEnvSnapshot,
   getConversationWorkspaceDir,
   getDataBaseDir,
+  getAppConfigDir,
   getZCodeDataRootDir,
   normalizeRuntimeProcessEnv,
   setDataBaseDir,
@@ -268,6 +271,7 @@ if (!shouldUseElectronDefaultUserDataPath) {
       "Desktop runtime data paths are required when Electron default userData is disabled",
     );
   }
+  await mkdir(runtimeSessionDataPath, { recursive: true });
   app.setPath("userData", runtimeUserDataPath);
   app.setPath("sessionData", runtimeSessionDataPath);
 }
@@ -529,7 +533,7 @@ async function runBrowserCommandOnView(params: {
 let currentDesktopZoomLevel = 0;
 let currentDesktopWindowSize: DesktopWindowSize | undefined;
 const preloadPath = join(import.meta.dirname, "../preload/index.cjs");
-const settingsFile = join(homedir(), ".zcode", "v2", "setting.json");
+const settingsFile = join(getAppConfigDir(), "setting.json");
 let activeAppShutdownPolicy = resolveAppShutdownPolicy("normal", process.platform);
 let activeAppShutdownKind: AppShutdownKind | null = null;
 const WINDOWS_AGENT_FORCE_KILL_TIMEOUT_MS = 2_000;
@@ -1854,6 +1858,9 @@ app.on("second-instance", (_event, argv, _workingDirectory, additionalData) => {
 });
 
 app.whenReady().then(async () => {
+  if (app.isPackaged && !process.env.ZCODE_CODEX_BINARY) {
+    process.env.ZCODE_CODEX_BINARY = join(process.resourcesPath, "codex", "codex");
+  }
   markMainLaunchAppReady();
   installLocalMediaPreviewProtocol(session.defaultSession.protocol, {
     isPathAuthorized: localMediaPreviewPathRegistry.isAuthorized,
@@ -1943,7 +1950,7 @@ app.whenReady().then(async () => {
   // Preview 身份无论连接哪个后端都不自动更新：stable feed 上只分发正式 ZCode 安装包，
   // 不向 Preview 渠道提供更新。
   void initAutoUpdater({
-    enabled: ZCODE_PRODUCT_FLAVOR === "production",
+    enabled: false, // 自用定制版由本地构建更新，不能被官方安装包覆盖。
     onBeforeQuitAndInstall: async () => {
       notifyStabilityLifecycle("update_install");
       await prepareAppQuit("auto-update quitAndInstall", "update-install");
@@ -2184,7 +2191,7 @@ app.whenReady().then(async () => {
   // 分支不 bump 版本），会被 release minimalVersion 误判为"需强制升级"而启动秒退。force-update
   // 是面向打包发布客户端的安全门，对未打包 dev 运行时无意义。打包版 app.isPackaged === true，
   // gate 照常生效，对真实用户零影响。
-  const skipForceUpdateForLocalDevRuntime = !app.isPackaged;
+  const skipForceUpdateForLocalDevRuntime = true; // 定制发行版不接官方强制更新。
   const forceUpdateGuardResult =
     ZCODE_PRODUCT_FLAVOR === "production" && !skipForceUpdateForLocalDevRuntime
       ? await maybeBlockStartupForForceUpdate({

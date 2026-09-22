@@ -1,5 +1,6 @@
-const DEEP_LINK_SCHEME = "zcode";
-const DEEP_LINK_RE = /\bzcode:(?:\/\/|\/)?[^\s"'<>]+/i;
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
+const DEEP_LINK_SCHEME = "codex-for-zcode";
+const DEEP_LINK_RE = /\bcodex-for-zcode:(?:\/\/|\/)?[^\s"'<>]+/i;
 const OAUTH_CALLBACK_HOSTS = new Set(["oauth"]);
 const PAYMENT_CALLBACK_HOST = "payment";
 const WORKSPACE_OPEN_HOST = "workspace";

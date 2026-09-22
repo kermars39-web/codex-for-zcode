@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 /* eslint-disable max-lines -- Electron Builder config keeps related packaging hooks together so build order stays explicit. */
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { readdir, writeFile } from "node:fs/promises";
@@ -536,7 +537,14 @@ export default {
       context.electronPlatformName === "darwin"
         ? resolve(context.appOutDir, framework.distMacOsAppName, "Contents", "Resources")
         : resolve(context.appOutDir, "resources");
-    await stageElectronNotices(context.appOutDir, resources, framework.version);
+    const unpackedDistribution = context.packager.config.electronDist;
+    const licenseRoot = !existsSync(resolve(context.appOutDir, "LICENSE")) &&
+      !existsSync(resolve(context.appOutDir, "LICENSE.electron.txt")) &&
+      typeof unpackedDistribution === "string" &&
+      existsSync(resolve(desktopPackageRoot, unpackedDistribution, "LICENSE"))
+        ? resolve(desktopPackageRoot, unpackedDistribution)
+        : context.appOutDir;
+    await stageElectronNotices(licenseRoot, resources, framework.version);
   },
   afterPack: async (context) => {
     const actualWindowsTarget =
@@ -566,6 +574,7 @@ export default {
     }
   },
   extraResources: [
+    { from: "bundled-codex", to: "codex" },
     { from: resolve(workspaceRoot, noticesFileName), to: noticesFileName },
     ...(targetPlatform.os === "darwin"
       ? [
@@ -649,9 +658,9 @@ export default {
   protocols: [
     {
       // 协议处理器的展示名之前使用小写 scheme，打包产物里的协议描述无法体现产品名。
-      // 展示名跟随安装包身份；scheme 仍保持 zcode，因此两个应用中最后注册者会成为默认 handler。
+      // 自用版注册独立入口；原有引擎 OAuth 继续由 Host 轮询，不抢占正式版回调。
       name: desktopProductIdentity.productName,
-      schemes: ["zcode"],
+      schemes: ["codex-for-zcode"],
     },
   ],
   mac: {

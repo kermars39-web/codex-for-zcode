@@ -1,3 +1,5 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
+import type { ReactNode } from "react";
 import { memo, useCallback, useMemo, type CSSProperties } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -21,6 +23,7 @@ export const SortableWorkspaceSidebarItem = memo(function SortableWorkspaceSideb
   onSelectTask,
   onStartDraftInWorkspace,
   taskItems,
+  additionalTasks,
   taskListLoading,
   taskListHasMore,
   taskListHasUnread = false,
@@ -46,6 +49,7 @@ export const SortableWorkspaceSidebarItem = memo(function SortableWorkspaceSideb
   ) => void;
   onStartDraftInWorkspace: (targetWorkspacePath: string, targetWorkspaceIdentity?: string) => void;
   taskItems: ZCodeTaskMeta[];
+  additionalTasks?: ReactNode;
   taskListLoading: boolean;
   taskListHasMore: boolean;
   taskListHasUnread?: boolean;
@@ -115,6 +119,7 @@ export const SortableWorkspaceSidebarItem = memo(function SortableWorkspaceSideb
       onSelectTask={onSelectTask}
       onStartDraftInWorkspace={onStartDraftInWorkspace}
       taskItems={taskItems}
+      additionalTasks={additionalTasks}
       taskListLoading={taskListLoading}
       taskListHasMore={taskListHasMore}
       taskListHasUnread={taskListHasUnread}

@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import {
   ZCODE_VERSION,
   buildRuntimeZCodeApiUrl,
@@ -33,7 +34,13 @@ export function buildZCodeApiUrlFromEnv(env: NodeJS.ProcessEnv, path: string): s
 
 export function buildDesktopOAuthRedirectUriFromEnv(env: NodeJS.ProcessEnv): string {
   const url = new URL("/app/oauth/login", buildRuntimeZCodeEndpointUrls(env).origin);
-  url.searchParams.set("redirect", DESKTOP_OAUTH_CALLBACK_URI);
+  // 独立自用版必须返回自己的协议，否则登录完成后会唤起原版应用。
+  url.searchParams.set(
+    "redirect",
+    env.ZCODE_DESKTOP_URL_SCHEME === "codex-for-zcode"
+      ? "codex-for-zcode://oauth/callback"
+      : DESKTOP_OAUTH_CALLBACK_URI,
+  );
   // Website 需要按 App 版本决定是否关闭自动 deep link；缺少版本时必须兼容旧客户端行为。
   url.searchParams.set("app_version", ZCODE_VERSION);
   return url.toString();

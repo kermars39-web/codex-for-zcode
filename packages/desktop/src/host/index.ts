@@ -1,3 +1,8 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
+import { join } from "node:path";
+import { homedir } from "node:os";
+import { ICodexService } from "@zcode/services";
+import { getCodexService, disposeCodexServices } from "@zcode/services/node";
 /* eslint-disable max-lines -- Host 入口集中编排 local/remote service wiring，本次退出保护需要在同一处桥接 host 上报。 */
 /* eslint-disable max-lines -- host process 入口集中维护 local/remote 初始化和资源回收，realtime bridge 接入后先保持同文件收口。 */
 /**
@@ -22,6 +27,7 @@ import {
   type IChannelServer,
   LoggingChannelServer,
   NetworkTelemetryChannelServer,
+  ProxyChannel,
 } from "@zcode/rpc";
 import { registerHostNetworkTelemetry, stopHostNetworkTelemetry } from "./hostNetworkTelemetry.js";
 import { registerHostServiceResourceTelemetry } from "./hostServiceResourceTelemetry.js";
@@ -2021,6 +2027,13 @@ function exposeServicesOnMessagePort(
       ),
     );
   }
+  if (attachmentScope.kind === "local" && clientMode === "desktop-continuous") {
+    const codexService = getCodexService({
+      root: join(process.env.ZCODE_DATA_BASE_DIR || join(homedir(), ".codex-for-zcode"), "codex"),
+      binary: process.env.ZCODE_CODEX_BINARY || (process.platform === "darwin" ? "/opt/homebrew/bin/codex" : "codex"),
+    });
+    server.registerChannel(ICodexService.channelName, ProxyChannel.fromService(codexService));
+  }
   services.exposeOnChannelServer(server, overrides);
   let disposed = false;
   let flowUpdateChain = Promise.resolve();
@@ -2144,6 +2157,11 @@ async function disposeHostResources(reason: string): Promise<HostShutdownResult>
     // Registry 是全部远端 connection 的唯一 owner；释放失败不能阻塞本地服务继续收口。
     const shutdownResult = await runHostShutdownPhases(
       [
+        {
+          name: "codex-dispose",
+          run: () => disposeCodexServices(),
+          timeoutMs: 4_000,
+        },
         {
           name: "remote-registry-dispose",
           run: () => windowRemoteConnectionRegistry.dispose(),

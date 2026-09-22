@@ -1,0 +1,25 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem without credentials or private history.
+body:
+  - type: markdown
+    attributes:
+      value: "请先删除账号、token、私有路径和真实会话。Do not upload credentials or private history."
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境 / Environment
+      description: OS, CPU architecture, Codex version, commit or release.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤 / Steps
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 预期与实际 / Expected and actual
+    validations:
+      required: true

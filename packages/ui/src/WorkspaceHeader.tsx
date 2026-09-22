@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import type {
   ZCodeProvider,
   ZCodeTaskMeta,
@@ -7,7 +8,7 @@ import type {
   RemoteTarget,
   UserInfo,
 } from "@zcode/shared";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { TID_WORKSPACE_HEADER } from "@zcode/shared";
 import type { ConversationDropTargetController } from "@/v4/composer/conversationDropTarget.js";
 import { cn } from "@/components/lib/utils.js";
@@ -20,6 +21,7 @@ import type { WorkspaceHeaderVariant } from "@/WorkspaceHeaderSections/shared.js
 
 export function WorkspaceHeader({
   variant = "task",
+  titleContent,
 
   draftDropTargetController,
   readOnlyReason,
@@ -64,6 +66,8 @@ export function WorkspaceHeader({
   reloadSessionPending,
 }: {
   variant?: WorkspaceHeaderVariant;
+  /** 引擎自有标题放入同一个窗口栏，避免另起第二层标题。 */
+  titleContent?: ReactNode;
   draftDropTargetController?: ConversationDropTargetController | null;
   readOnlyReason?: string;
   workspaceAbsPath: string;
@@ -159,44 +163,45 @@ export function WorkspaceHeader({
           headerWindowControlsPaddingClass,
         )}
       >
-        {variant === "task" ? (
-          <WorkspaceHeaderTitleSection
-            variant={variant}
-            readOnlyReason={readOnlyReason}
-            workspaceAbsPath={workspaceAbsPath}
-            remoteSessionId={remoteSessionId}
-            workspaceIdentity={workspaceIdentity}
-            remoteTarget={remoteTarget}
-            localWorkspacePath={localWorkspacePath}
-            projectName={projectName}
-            activeTaskTitle={activeTaskTitle}
-            activeTaskChangeSummary={activeTaskChangeSummary}
-            activeTaskId={activeTaskId}
-            activeTraceId={activeTraceId}
-            activeSessionId={activeSessionId}
-            activeTaskProvider={activeTaskProvider}
-            resolvedActiveTaskMeta={resolvedActiveTaskMeta}
-            gitSummary={gitSummary}
-            gitDirtyFileCount={gitDirtyFileCount}
-            sessionLogPath={sessionLogPath}
-            nativeSessionLogProvider={nativeSessionLogProvider}
-            nativeSessionLogPath={nativeSessionLogPath}
-            nativeSessionLogExists={nativeSessionLogExists}
-            nativeSessionLogLoading={nativeSessionLogLoading}
-            workspaceHeaderState={workspaceHeaderState}
-            isMacDesktop={isMacDesktop}
-            isMacFullscreen={isMacFullscreen}
-            isWindowsDesktop={isWindowsDesktop}
-            simplifyForNarrowRemote={simplifyForNarrowRemote}
-            selectedEditor={selectedEditor}
-            onReloadSession={onReloadSession}
-            reloadSessionDisabled={reloadSessionDisabled}
-            reloadSessionPending={reloadSessionPending}
-            onRefreshGit={onRefreshGit}
-          />
-        ) : (
-          <div className="min-w-0 flex-1" aria-hidden="true" />
-        )}
+        {titleContent ??
+          (variant === "task" ? (
+            <WorkspaceHeaderTitleSection
+              variant={variant}
+              readOnlyReason={readOnlyReason}
+              workspaceAbsPath={workspaceAbsPath}
+              remoteSessionId={remoteSessionId}
+              workspaceIdentity={workspaceIdentity}
+              remoteTarget={remoteTarget}
+              localWorkspacePath={localWorkspacePath}
+              projectName={projectName}
+              activeTaskTitle={activeTaskTitle}
+              activeTaskChangeSummary={activeTaskChangeSummary}
+              activeTaskId={activeTaskId}
+              activeTraceId={activeTraceId}
+              activeSessionId={activeSessionId}
+              activeTaskProvider={activeTaskProvider}
+              resolvedActiveTaskMeta={resolvedActiveTaskMeta}
+              gitSummary={gitSummary}
+              gitDirtyFileCount={gitDirtyFileCount}
+              sessionLogPath={sessionLogPath}
+              nativeSessionLogProvider={nativeSessionLogProvider}
+              nativeSessionLogPath={nativeSessionLogPath}
+              nativeSessionLogExists={nativeSessionLogExists}
+              nativeSessionLogLoading={nativeSessionLogLoading}
+              workspaceHeaderState={workspaceHeaderState}
+              isMacDesktop={isMacDesktop}
+              isMacFullscreen={isMacFullscreen}
+              isWindowsDesktop={isWindowsDesktop}
+              simplifyForNarrowRemote={simplifyForNarrowRemote}
+              selectedEditor={selectedEditor}
+              onReloadSession={onReloadSession}
+              reloadSessionDisabled={reloadSessionDisabled}
+              reloadSessionPending={reloadSessionPending}
+              onRefreshGit={onRefreshGit}
+            />
+          ) : (
+            <div className="min-w-0 flex-1" aria-hidden="true" />
+          ))}
         <WorkspaceHeaderActionSection
           variant={variant}
           activeTaskId={activeTaskId}

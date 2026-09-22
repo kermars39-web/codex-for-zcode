@@ -1,3 +1,4 @@
+# Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 node_modules/
 dist/
 # zcode-server-cli 发行包 staging 输出，本地组装产物不入库。
@@ -69,3 +70,9 @@ packages/desktop/.e2e-artifacts/
 packages/desktop/.e2e-cache/
 packages/desktop/.e2e-network-capture/
 .zcode-runtime/
+
+# Local Codex integration tooling and private smoke artifacts
+.local-tools/
+.local-evidence/
+.local-runtime/
+packages/desktop/bundled-codex/

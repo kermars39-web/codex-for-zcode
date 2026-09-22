@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 /**
  * ZCode Session Store 导航切片 —— 任务前进/后退历史管理
  *
@@ -10,6 +11,7 @@ import {
   goForward as navGoForward,
   pushAutomationsNavEntry,
   pushPluginStoreNavEntry,
+  pushCodexNavEntry,
   removeTaskFromHistory,
   type AutomationsNavigationTab,
   type WorkspaceNavEntry,
@@ -31,6 +33,17 @@ type GetFn = () => ZCodeSessionStoreState;
 export function createNavigationSlice(set: SetFn, get: GetFn) {
   return {
     taskNavHistory: createTaskNavigationHistory(),
+
+    taskNavPushCodex: (workspacePath: string, taskId: string, workspaceIdentity?: string) => {
+      set((state) => ({
+        taskNavHistory: pushCodexNavEntry(
+          state.taskNavHistory,
+          workspacePath,
+          taskId,
+          workspaceIdentity,
+        ),
+      }));
+    },
 
     taskNavPushAutomations: (
       workspacePath: string,

@@ -1,5 +1,7 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import { ProxyChannel, type IChannelClient } from "@zcode/rpc";
 import {
+  ICodexService,
   IFileService,
   IMediaPreviewService,
   IGitService,
@@ -48,6 +50,7 @@ import {
  * 新增服务只需在此添加一个 getter。
  */
 export class RemoteServiceAccess implements IServiceAccessor {
+  readonly codexService: ICodexService;
   readonly fileService: IFileService;
   readonly mediaPreviewService: IMediaPreviewService;
   readonly gitService: IGitService;
@@ -92,6 +95,7 @@ export class RemoteServiceAccess implements IServiceAccessor {
   readonly promptAttachmentTransferService: IPromptAttachmentTransferService;
 
   constructor(channelClient: IChannelClient) {
+    this.codexService = ProxyChannel.toService<ICodexService>(channelClient.getChannel(ICodexService.channelName));
     this.fileService = ProxyChannel.toService<IFileService>(
       channelClient.getChannel(IFileService.channelName),
     );

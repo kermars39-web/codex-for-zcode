@@ -68,3 +68,8 @@ AI 生成的代码、命令、解释、文件和建议可能存在错误、遗�
 ## 四、第三方许可与版权声明
 
 本仓库第一方代码依照根 [LICENSE](LICENSE) 采用 Apache-2.0；该许可不替其他权利人新增授权，也不覆盖第三方软件、复制代码、原生二进制、字体、图标、网页素材及其他资源的独立条款。具体依赖包详见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。受第三方版权、许可及再分发条件等约束，不承诺提供官方产品的全部功能及活动政策，具体以实际发布的源码和构建产物为准。
+
+
+## Codex for ZCode community modifications
+
+This repository is a community derivative of Z.ai ZCode 3.14.0 (upstream commit 872ad960de7ec172591f7e1952f7849229f94521). Codex for ZCode contributors added the local Codex App Server integration, independent history import, model display aliases and isolated desktop identity. See MODIFICATIONS.md. These notices do not imply endorsement by Z.ai or OpenAI. Original license, copyright and third-party attribution notices remain applicable.

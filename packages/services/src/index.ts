@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 // Descriptors & collection (browser-safe)
 export { type ServiceDescriptor, createServiceDescriptor } from "./descriptors.js";
 export { ServiceCollection } from "./collection.js";
@@ -299,3 +300,6 @@ export type {
   FeedbackTicketType,
 } from "@zcode/shared";
 export { IClientConfigService } from "./client-config/clientConfig.js";
+
+export { ICodexService } from "./codex-engine/contract.js";
+export type { CodexRecord, CodexRow, CodexModel, CodexTask, CodexApproval, CodexTaskPage, CodexStatus, CodexServiceEvent, CodexImportMode, CodexImportCandidate, CodexImportPreview } from "./codex-engine/contract.js";

@@ -1,3 +1,5 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
+import type { ReactNode } from "react";
 /* eslint-disable max-lines -- workspace 行同时承载折叠、远端状态和快捷操作，先保持同文件收口。 */
 import {
   memo,
@@ -137,6 +139,7 @@ export const WorkspaceSidebarItem = memo(function WorkspaceSidebarItem({
   onSelectTask,
   onStartDraftInWorkspace,
   taskItems,
+  additionalTasks,
   taskListLoading,
   taskListHasMore,
   taskListHasUnread = false,
@@ -165,6 +168,7 @@ export const WorkspaceSidebarItem = memo(function WorkspaceSidebarItem({
   ) => void;
   onStartDraftInWorkspace: (targetWorkspacePath: string, targetWorkspaceIdentity?: string) => void;
   taskItems: ZCodeTaskMeta[];
+  additionalTasks?: ReactNode;
   taskListLoading: boolean;
   taskListHasMore: boolean;
   taskListHasUnread?: boolean;
@@ -1115,25 +1119,28 @@ export const WorkspaceSidebarItem = memo(function WorkspaceSidebarItem({
         </BorderBeam>
 
         <CollapsibleContent>
-          <TaskList
-            workspacePath={tab.workspacePath}
-            remoteSessionId={tab.remoteSessionId}
-            workspaceIdentity={tab.workspaceIdentity}
-            tasks={taskItems}
-            pinnedTasks={EMPTY_PINNED_TASKS}
-            activeTaskId={isActiveWorkspace ? activeTaskId : null}
-            onSelectTask={handleSelectTask}
-            showCreateButton={false}
-            showFooter={false}
-            loading={taskListLoading}
-            hasMore={taskListHasMore}
-            onShowMore={onShowMoreTasks}
-            onRenameTask={handleRenameTask}
-            onSetTaskPinned={handleSetTaskPinned}
-            onArchiveTask={handleArchiveTask}
-            onSetTaskUnread={handleSetTaskUnread}
-            readOnlyReason={readOnlyReason}
-          />
+          {additionalTasks}
+          {(!additionalTasks || taskItems.length > 0 || taskListLoading) && (
+            <TaskList
+              workspacePath={tab.workspacePath}
+              remoteSessionId={tab.remoteSessionId}
+              workspaceIdentity={tab.workspaceIdentity}
+              tasks={taskItems}
+              pinnedTasks={EMPTY_PINNED_TASKS}
+              activeTaskId={isActiveWorkspace ? activeTaskId : null}
+              onSelectTask={handleSelectTask}
+              showCreateButton={false}
+              showFooter={false}
+              loading={taskListLoading}
+              hasMore={taskListHasMore}
+              onShowMore={onShowMoreTasks}
+              onRenameTask={handleRenameTask}
+              onSetTaskPinned={handleSetTaskPinned}
+              onArchiveTask={handleArchiveTask}
+              onSetTaskUnread={handleSetTaskUnread}
+              readOnlyReason={readOnlyReason}
+            />
+          )}
         </CollapsibleContent>
       </Collapsible>
       <RemoteSyncDialogs

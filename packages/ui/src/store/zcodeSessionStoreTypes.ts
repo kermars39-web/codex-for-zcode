@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 /* oxlint-disable eslint(max-lines) -- ZCode Agent store 类型和默认状态集中导出，避免切片间重复定义共享结构。 */
 /**
  * ZCode Session Store 类型定义、接口、常量与默认值工厂
@@ -455,6 +456,7 @@ export interface ZCodeSessionStoreState {
 
   /** workspace 导航历史（全局、跨 workspace，包含 task 与 Automations） */
   taskNavHistory: TaskNavigationHistory;
+  taskNavPushCodex: (workspacePath: string, taskId: string, workspaceIdentity?: string) => void;
   /** 记录 Automations 主视图或详情导航。 */
   taskNavPushAutomations: (
     workspacePath: string,

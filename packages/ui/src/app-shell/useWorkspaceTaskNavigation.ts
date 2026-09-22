@@ -1,5 +1,7 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 /* eslint-disable max-lines -- workspace 的 task、自动化与插件市场共享浏览器式历史，集中处理才能保证前进/后退目标一致。 */
 import { useCallback } from "react";
+import { useCodexUiStore } from "@/store/codexUiStore.js";
 import { useBaseWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
 import {
   canGoBack as navCanGoBack,
@@ -88,6 +90,8 @@ export function useWorkspaceTaskNavigation({
         toast(intl.formatMessage({ id: "taskList.switchBlockedByModelRestart" }));
         return;
       }
+
+      useCodexUiStore.getState().select(targetWorkspaceIdentityHint || targetWorkspacePath, null);
 
       // 远程 workspace 的未读清理不能再只靠 workspacePath 反查 session。
       // 当同一窗口里存在相同路径的多个 remote tab 时，路径映射会命中旧 session，
@@ -277,6 +281,22 @@ export function useWorkspaceTaskNavigation({
         onNavigateToPluginStore?.(currentEntry);
         return;
       }
+      if (currentEntry.engineKind === "codex" && baseServices.codexService) {
+        // 回放只恢复页面选择；不要调用原引擎 resume，也不能再次入栈。
+        const key = currentEntry.workspaceIdentity || currentEntry.workspacePath;
+        if (
+          !activateTabByPath(currentEntry.workspacePath, {
+            workspaceIdentity: currentEntry.workspaceIdentity,
+          })
+        ) {
+          tabStoreApi.getState().addTab(currentEntry.workspacePath);
+        }
+        useCodexUiStore
+          .getState()
+          .select(key, currentEntry.taskId, currentEntry.workspacePath, true);
+        onNavigateToTask?.();
+        return;
+      }
       const navWorkspaceState = useZCodeSessionStore
         .getState()
         .getWorkspaceState(currentEntry.workspacePath, currentEntry.workspaceIdentity);
@@ -308,6 +328,9 @@ export function useWorkspaceTaskNavigation({
     onNavigateToPluginStore,
     removeTaskFromNavHistory,
     taskNavGoBack,
+    baseServices.codexService,
+    tabStoreApi,
+    onNavigateToTask,
     workspaceAbsPath,
   ]);
 
@@ -363,6 +386,22 @@ export function useWorkspaceTaskNavigation({
         onNavigateToPluginStore?.(currentEntry);
         return;
       }
+      if (currentEntry.engineKind === "codex" && baseServices.codexService) {
+        // 回放只恢复页面选择；不要调用原引擎 resume，也不能再次入栈。
+        const key = currentEntry.workspaceIdentity || currentEntry.workspacePath;
+        if (
+          !activateTabByPath(currentEntry.workspacePath, {
+            workspaceIdentity: currentEntry.workspaceIdentity,
+          })
+        ) {
+          tabStoreApi.getState().addTab(currentEntry.workspacePath);
+        }
+        useCodexUiStore
+          .getState()
+          .select(key, currentEntry.taskId, currentEntry.workspacePath, true);
+        onNavigateToTask?.();
+        return;
+      }
       const navWorkspaceState = useZCodeSessionStore
         .getState()
         .getWorkspaceState(currentEntry.workspacePath, currentEntry.workspaceIdentity);
@@ -393,6 +432,9 @@ export function useWorkspaceTaskNavigation({
     onNavigateToPluginStore,
     removeTaskFromNavHistory,
     taskNavGoForward,
+    baseServices.codexService,
+    tabStoreApi,
+    onNavigateToTask,
     workspaceAbsPath,
   ]);
 

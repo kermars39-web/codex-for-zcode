@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 // 编译 macOS 窗口 bounds 辅助程序（CUA 权限浮窗的吸附数据源）。
 //
 // 非 darwin 直接跳过：这个二进制只服务 macOS 的 TCC 授权引导，其他平台没有对应流程。
@@ -6,7 +7,7 @@
 // 会 fail-open 到屏幕底部照样可用，不该因此让整个 desktop 构建挂掉。
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -49,6 +50,11 @@ try {
     ["swiftc", "-O", "-target", "arm64-apple-macos11", sourcePath, "-o", `${outputPath}-arm64`],
     { stdio: "inherit" },
   );
+  if (process.env.ZCODE_LOCAL_ARCH === "arm64") {
+    copyFileSync(`${outputPath}-arm64`, outputPath);
+    console.log(`[window-bounds] 已构建本机 arm64 二进制：${outputPath}`);
+    process.exit(0);
+  }
   execFileSync(
     "xcrun",
     ["swiftc", "-O", "-target", "x86_64-apple-macos11", sourcePath, "-o", `${outputPath}-x86_64`],

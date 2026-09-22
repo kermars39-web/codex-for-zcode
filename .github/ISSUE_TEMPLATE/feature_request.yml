@@ -1,0 +1,13 @@
+name: Feature request / 功能建议
+description: Describe the problem and a concrete workflow.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 哪个使用场景受到影响？ / What workflow is blocked?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议的行为与验收 / Proposed behavior and verification

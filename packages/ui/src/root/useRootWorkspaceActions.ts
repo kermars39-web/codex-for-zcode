@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 /* eslint-disable max-lines -- Root workspace action hook 集中编排项目、远程和 conversation 入口；合并期保持动作边界完整，后续按领域拆分。 */
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -19,6 +20,7 @@ import { logger } from "@/logger.js";
 import { openFolderFromWorkspaceEntry } from "@/root/openWorkspaceFolderEntry.js";
 import { useConversationWorkspaceActions } from "@/root/useConversationWorkspaceActions.js";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
+import { CODEX_DRAFT, useCodexUiStore } from "@/store/codexUiStore.js";
 import { isWorkspaceReadOnly, type TabStore, type TabStoreState } from "@/store/tabStore.js";
 import type { RootProps } from "@/root/types.js";
 import {
@@ -154,8 +156,24 @@ export function useRootWorkspaceActions({
         usePaneLayoutStore.getState().resetToPrimaryPane();
       }
       useZCodeSessionStore.getState().startDraft(workspacePath, undefined, workspaceIdentity);
+      const target = tabStoreApi
+        .getState()
+        .tabs.find(
+          (tab) =>
+            "workspacePath" in tab &&
+            (tab.workspaceIdentity || tab.workspacePath) === (workspaceIdentity || workspacePath),
+        );
+      if (
+        services.codexService &&
+        !(target && "remoteSessionId" in target && target.remoteSessionId) &&
+        useCodexUiStore.getState().preferredEngine === "codex"
+      ) {
+        useCodexUiStore
+          .getState()
+          .select(workspaceIdentity || workspacePath, CODEX_DRAFT, workspacePath);
+      }
     },
-    [workbenchGroupClientMode],
+    [workbenchGroupClientMode, services.codexService, tabStoreApi],
   );
 
   const startNewTaskFromActiveWorkspace = useCallback(
@@ -245,6 +263,35 @@ export function useRootWorkspaceActions({
       // group / paneLayout 中继续拆一个 draft；目标 workspace 取 focused pane。
       useWorkbenchGroupStore.getState().deactivateActiveGroup();
       usePaneLayoutStore.getState().resetToPrimaryPane();
+      const targetTab = tabStoreApi
+        .getState()
+        .tabs.find(
+          (tab) =>
+            "workspacePath" in tab &&
+            tab.workspacePath === newTaskTarget.workspacePath &&
+            (!newTaskTarget.workspaceIdentity ||
+              tab.workspaceIdentity === newTaskTarget.workspaceIdentity),
+        );
+      const selectedEngine =
+        typeof request === "object" && request.engineKind
+          ? request.engineKind
+          : useCodexUiStore.getState().preferredEngine;
+      // 菜单、快捷键和侧栏共用此入口，避免只修按钮后首页仍退回原引擎。
+      if (
+        services.codexService &&
+        selectedEngine === "codex" &&
+        !(targetTab && "remoteSessionId" in targetTab && targetTab.remoteSessionId) &&
+        !provider
+      ) {
+        const key = newTaskTarget.workspaceIdentity || newTaskTarget.workspacePath;
+        if (initialPrompt)
+          useCodexUiStore.getState().setDraft(`${key}:${CODEX_DRAFT}`, initialPrompt);
+        useCodexUiStore.getState().select(key, CODEX_DRAFT, newTaskTarget.workspacePath);
+        return;
+      }
+      useCodexUiStore
+        .getState()
+        .select(newTaskTarget.workspaceIdentity || newTaskTarget.workspacePath, null);
       useZCodeSessionStore
         .getState()
         .startDraft(
@@ -279,7 +326,7 @@ export function useRootWorkspaceActions({
           );
       }
     },
-    [addTab, intl, tabStoreApi, workbenchGroupClientMode],
+    [addTab, intl, tabStoreApi, workbenchGroupClientMode, services.codexService],
   );
 
   const handleLogout = useCallback(async () => {

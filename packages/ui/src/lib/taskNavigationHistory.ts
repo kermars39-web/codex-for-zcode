@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 /**
  * Workspace 导航历史 —— 浏览器式前进/后退栈
  *
@@ -13,6 +14,7 @@ interface WorkspaceNavEntryBase {
 export interface TaskNavEntry extends WorkspaceNavEntryBase {
   kind: "task";
   taskId: string;
+  engineKind?: "codex";
 }
 
 // "workflow" 是自动化页的顶级「工作流」标签；
@@ -69,7 +71,11 @@ function isSameNavEntry(left: WorkspaceNavEntry, right: WorkspaceNavEntry): bool
     return false;
   }
 
-  if (left.kind === "task") return left.taskId === (right as TaskNavEntry).taskId;
+  if (left.kind === "task")
+    return (
+      left.taskId === (right as TaskNavEntry).taskId &&
+      left.engineKind === (right as TaskNavEntry).engineKind
+    );
   if (left.kind === "automations") {
     const rightAutomations = right as AutomationsNavEntry;
     return (
@@ -118,6 +124,22 @@ export function pushNavEntry(
     workspacePath,
     ...(workspaceIdentity ? { workspaceIdentity } : {}),
     taskId,
+  });
+}
+
+/** Codex 草稿与历史也使用同一导航栈；回放不得当作原引擎任务恢复。 */
+export function pushCodexNavEntry(
+  history: TaskNavigationHistory,
+  workspacePath: string,
+  taskId: string,
+  workspaceIdentity?: string,
+): TaskNavigationHistory {
+  return pushEntry(history, {
+    kind: "task",
+    engineKind: "codex",
+    workspacePath,
+    taskId,
+    ...(workspaceIdentity ? { workspaceIdentity } : {}),
   });
 }
 

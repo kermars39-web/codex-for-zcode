@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import type { RefObject } from "react";
 import type {
   ZCodeProvider,
@@ -57,6 +58,7 @@ export interface WorkspaceShellZCodeState {
 }
 
 export interface CreateTaskOptions {
+  engineKind?: "codex" | "zcode";
   /** 异步预填只能提交到解析 Skill 时的同一新任务目标。 */
   expectedWorkspaceKey?: string;
   provider?: ZCodeProvider;

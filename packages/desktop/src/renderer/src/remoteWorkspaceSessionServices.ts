@@ -1,3 +1,4 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
 import type { IServiceAccessor } from "@zcode/services";
 
 export function buildRemoteWorkspaceSessionServices(
@@ -6,6 +7,7 @@ export function buildRemoteWorkspaceSessionServices(
 ): IServiceAccessor {
   return {
     ...baseServices,
+    codexService: undefined,
     fileService: remoteServices.fileService,
     mediaPreviewService: remoteServices.mediaPreviewService,
     gitService: remoteServices.gitService,

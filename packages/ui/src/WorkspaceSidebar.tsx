@@ -1,3 +1,7 @@
+// Modified by Codex for ZCode contributors; see MODIFICATIONS.md.
+import { useCodexTasks } from "@/hooks/useCodexService.js";
+import { useCodexUiStore } from "@/store/codexUiStore.js";
+import { CodexSidebarTasks, CodexTaskRows } from "@/codex/CodexSidebarTasks.js";
 /* eslint-disable max-lines -- 归档视图开关沿用现有 sidebar 结构，先保持同文件收口。 */
 import {
   memo,
@@ -598,6 +602,16 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
   const [createGroupedTaskGroupAction, setCreateGroupedTaskGroupAction] = useState<
     (() => void) | null
   >(null);
+  const codex = useCodexTasks();
+  const codexUnassignedTasks = codex.tasks.filter(
+    (task) =>
+      !projectWorkspaceTabs.some(
+        (tab) =>
+          (tab.workspaceIdentity || tab.workspacePath) ===
+          (task.workspaceIdentity || task.workspacePath),
+      ),
+  );
+  const preferredEngine = useCodexUiStore((s) => s.preferredEngine);
   const [createGroupedTaskDraftAction, setCreateGroupedTaskDraftAction] = useState<
     (() => void) | null
   >(null);
@@ -1271,7 +1285,7 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
                   if (workspaceReadOnly) {
                     return;
                   }
-                  if (taskViewMode === "grouped") {
+                  if (taskViewMode === "grouped" && preferredEngine !== "codex") {
                     if (createGroupedTaskDraftAction) {
                       createGroupedTaskDraftAction();
                       return;
@@ -1298,24 +1312,18 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
                 {commandCenterShortcutLabel}
               </span>
             </Button>
-            {/* 远程入口展示策略统一走 useRemoteConnectionEntryVisibility，避免与其他入口出现分叉。*/}
-            {/* {showRemoteConnectionEntry ? (
-              <SSHDialog
-                onConnect={onConnectRemote}
-                onSelectProject={onSelectRemoteProject}
-                onCancelSession={onCancelRemoteProject}
-                isWindowsDesktop={isWindowsDesktop}
-                triggerVariant="ghost"
-                triggerSize="lg"
-                triggerClassName="w-full justify-start gap-2 text-foreground hover:bg-surface-hover hover:text-foreground"
-                trigger={
-                  <>
-                    <Cloud className="size-4" />
-                    <span>{intl.formatMessage({ id: "remote.trigger" })}</span>
-                  </>
-                }
-              />
-            ) : null} */}
+            {onOpenRemoteWorkspace && isDesktop && (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={onOpenRemoteWorkspace}
+                className="w-full justify-start gap-2 text-foreground hover:bg-surface-hover"
+                aria-label="远程连接"
+              >
+                <Cloud className="size-4" />
+                远程连接
+              </Button>
+            )}
             <Button
               variant="ghost"
               onClick={handleOpenAutomationsMain}
@@ -1358,6 +1366,13 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
               }
               style={workspaceScrollMaskStyle}
             >
+              {isDesktop && !workspaceRemoteSessionId && taskViewMode !== "workspace" ? (
+                <CodexSidebarTasks
+                  workspaceKey={workspaceIdentity?.trim() || workspacePath}
+                  error={codex.error}
+                  tasks={codex.tasks}
+                />
+              ) : null}
               {workspaceTaskToolbar()}
               {shouldShowPinnedTasks ? (
                 // 归档切换主任务区时不应隐藏 pinned。
@@ -1534,6 +1549,23 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
                                             toggleWorkspaceExpanded={toggleWorkspaceExpanded}
                                             onSelectTask={onSelectTask}
                                             onStartDraftInWorkspace={onStartDraftInWorkspace}
+                                            additionalTasks={
+                                              !tab.remoteSessionId &&
+                                              codex.tasks.some(
+                                                (task) =>
+                                                  (task.workspaceIdentity || task.workspacePath) ===
+                                                  workspaceKey,
+                                              ) ? (
+                                                <CodexTaskRows
+                                                  nested
+                                                  tasks={codex.tasks.filter(
+                                                    (task) =>
+                                                      (task.workspaceIdentity ||
+                                                        task.workspacePath) === workspaceKey,
+                                                  )}
+                                                />
+                                              ) : undefined
+                                            }
                                             taskItems={
                                               taskGroup?.items ?? EMPTY_WORKSPACE_TASK_ITEMS
                                             }
@@ -1596,27 +1628,39 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
                               onOpenChange={handleConversationSectionOpenChange}
                               testId={TID_CONVERSATION_SECTION}
                               action={
-                                <ControlHintTooltip
-                                  title={intl.formatMessage({
-                                    id: "workspaceSidebar.newConversation",
-                                  })}
-                                >
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    className="text-foreground-subtle hover:text-foreground"
-                                    aria-label={intl.formatMessage({
+                                <div className="flex items-center gap-0.5">
+                                  {isDesktop && !workspaceRemoteSessionId && (
+                                    <CodexSidebarTasks
+                                      menuOnly
+                                      workspaceKey={workspaceIdentity?.trim() || workspacePath}
+                                      tasks={[]}
+                                    />
+                                  )}
+                                  <ControlHintTooltip
+                                    title={intl.formatMessage({
                                       id: "workspaceSidebar.newConversation",
                                     })}
-                                    data-testid={TID_CONVERSATION_NEW_TASK}
-                                    onClick={onCreateConversationTask}
                                   >
-                                    <MessageCirclePlus className="size-3.5" />
-                                  </Button>
-                                </ControlHintTooltip>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon-sm"
+                                      className="text-foreground-subtle hover:text-foreground"
+                                      aria-label={intl.formatMessage({
+                                        id: "workspaceSidebar.newConversation",
+                                      })}
+                                      data-testid={TID_CONVERSATION_NEW_TASK}
+                                      onClick={onCreateConversationTask}
+                                    >
+                                      <MessageCirclePlus className="size-3.5" />
+                                    </Button>
+                                  </ControlHintTooltip>
+                                </div>
                               }
                             >
+                              {isDesktop && !workspaceRemoteSessionId && (
+                                <CodexTaskRows tasks={codexUnassignedTasks} />
+                              )}
                               <WorkspaceTimelineTasksSection
                                 workspaceTabs={conversationWorkspaceTabs}
                                 activeWorkspacePath={workspacePath}
@@ -1626,9 +1670,13 @@ export const WorkspaceSidebar = memo(function WorkspaceSidebarComponent({
                                 groupByDate={false}
                                 // conversation backing workspace 只是内部执行路径；用户文案改成“任务”不改变 purpose 语义。
                                 taskRowVariant="default"
-                                emptyMessage={intl.formatMessage({
-                                  id: "workspaceSidebar.noConversations",
-                                })}
+                                emptyMessage={
+                                  isDesktop &&
+                                  !workspaceRemoteSessionId &&
+                                  codexUnassignedTasks.length
+                                    ? ""
+                                    : intl.formatMessage({ id: "workspaceSidebar.noConversations" })
+                                }
                                 onSelectTask={handleTaskRowSelect}
                               />
                             </WorkspacePurposeSection>
