@@ -1912,6 +1912,8 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
                                   绑定语义与 testid 契约（paneId=workspace-main）不变。 */}
                             {showCodex ? (
                               <CodexChatPane
+                                draftComposerHeader={draftComposerHeader}
+                                onOpenAutomations={() => handleOpenAutomations("offpeak")}
                                 titleHost={codexTitleHost}
                                 workspacePath={workspaceAbsPath}
                                 workspaceIdentity={workspaceIdentity}

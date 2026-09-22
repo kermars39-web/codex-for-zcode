@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
@@ -41,7 +42,11 @@ export function CodexComposerOptions({
   running,
   onEffort,
   onModel,
+  onSettings,
+  onUseOriginalEngine,
 }: {
+  onSettings: () => void;
+  onUseOriginalEngine?: () => void;
   model?: CodexModel;
   models: CodexModel[];
   modelLabel: (model: CodexModel) => string;
@@ -60,7 +65,7 @@ export function CodexComposerOptions({
             variant="ghost"
             className="min-w-0 gap-1 px-1"
             aria-label="选择模型"
-            disabled={running || !models.length}
+            disabled={running}
           >
             <span className="max-w-40 truncate">{label}</span>
             <ChevronDown className="size-3 text-foreground-subtlest" />
@@ -74,6 +79,13 @@ export function CodexComposerOptions({
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={onSettings}>引擎与模型设置</DropdownMenuItem>
+          {onUseOriginalEngine && (
+            <DropdownMenuItem onSelect={onUseOriginalEngine}>
+              使用 ZCode 原有引擎新建
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       <DropdownMenu>

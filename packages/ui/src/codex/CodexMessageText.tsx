@@ -14,7 +14,7 @@ export function CodexMessageText({
   onSuggestion?: (prompt: string) => void;
 }) {
   return (
-    <div className="min-w-0 max-w-full">
+    <div className="w-full min-w-0 max-w-full text-ui-base" data-conversation-selectable="true">
       {messagePresentation(text).map((part, index) =>
         part.kind === "markdown" ? (
           <MessageResponse

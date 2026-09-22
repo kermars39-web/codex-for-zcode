@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     env:
-      CODEX_FOR_ZCODE_VERSION: 0.1.0-alpha.2
+      CODEX_FOR_ZCODE_VERSION: 0.1.0-alpha.3
       ZCODE_ENV: production
       ZCODE_SKIP_REMOTE_ASSETS: '1'
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -87,10 +87,10 @@ jobs:
           cat *.sha256 > SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
           cd ..
-          if gh release view v0.1.0-alpha.2 >/dev/null 2>&1; then
-            test "$(gh release view v0.1.0-alpha.2 --json isDraft --jq .isDraft)" = true
-            gh release edit v0.1.0-alpha.2 --target "$GITHUB_SHA" --notes-file docs/RELEASE-v0.1.0-alpha.2.md
+          if gh release view v0.1.0-alpha.3 >/dev/null 2>&1; then
+            test "$(gh release view v0.1.0-alpha.3 --json isDraft --jq .isDraft)" = true
+            gh release edit v0.1.0-alpha.3 --target "$GITHUB_SHA" --notes-file docs/RELEASE-v0.1.0-alpha.3.md
           else
-            gh release create v0.1.0-alpha.2 --draft --prerelease --target "$GITHUB_SHA" --title 'v0.1.0-alpha.2 · macOS & Windows preview' --notes-file docs/RELEASE-v0.1.0-alpha.2.md
+            gh release create v0.1.0-alpha.3 --draft --prerelease --target "$GITHUB_SHA" --title 'v0.1.0-alpha.3 · macOS & Windows preview' --notes-file docs/RELEASE-v0.1.0-alpha.3.md
           fi
-          gh release upload v0.1.0-alpha.2 --clobber release-assets/*.zip release-assets/*.exe release-assets/SHA256SUMS.txt release-assets/*-smoke.json
+          gh release upload v0.1.0-alpha.3 --clobber release-assets/*.zip release-assets/*.exe release-assets/SHA256SUMS.txt release-assets/*-smoke.json

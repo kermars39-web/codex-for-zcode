@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/components/lib/utils.js";
 import { getConversationContentWidthClassName } from "@/v4/conversationLayout.js";
@@ -8,7 +8,7 @@ import type { CodexStatus } from "@zcode/services";
 import { useCodexService, useCodexTask } from "@/hooks/useCodexService.js";
 import { usePlatform } from "@/hooks/usePlatform.js";
 import { CODEX_DRAFT, modelAliasKey, useCodexUiStore } from "@/store/codexUiStore.js";
-import { Button } from "@/components/ui/button.js";
+import { CodexDraftHome } from "./CodexDraftHome.js";
 import type { MessageFileLinkTarget } from "@/components/ai-elements/message.js";
 import { availableCodexModels, resolveCodexModel } from "@/lib/codexModelPreferences.js";
 import { CodexTranscript } from "./CodexTranscript.js";
@@ -22,7 +22,11 @@ export function CodexChatPane({
   taskId,
   onUseOriginalEngine,
   onOpenFileLink,
+  draftComposerHeader,
+  onOpenAutomations,
 }: {
+  draftComposerHeader?: ReactNode;
+  onOpenAutomations?: () => void;
   titleHost?: HTMLElement | null;
   workspacePath: string;
   workspaceIdentity?: string;
@@ -156,12 +160,92 @@ export function CodexChatPane({
       setLocalError(String(e));
     }
   }
+  const composer = (
+    <div
+      className={cn(
+        "relative mx-auto flex w-full shrink-0 flex-col gap-2",
+        taskId && "px-4 pb-4",
+        getConversationContentWidthClassName({
+          centeredEmptyLayout: !taskId,
+          statusPanelLayout: "none",
+        }),
+      )}
+    >
+      {page?.approvals.map((approval) => (
+        <CodexApprovalCard key={approval.id} approval={approval} />
+      ))}
+      {(error || localError || page?.task.error) && (
+        <p role="alert" className="rounded-md bg-surface p-2 text-ui-caption text-destructive">
+          {localError || error || page?.task.error}
+        </p>
+      )}
+      <CodexComposer
+        key={draftKey}
+        contextHeader={!taskId ? draftComposerHeader : undefined}
+        onSettings={() => setSettings(true)}
+        onUseOriginalEngine={
+          !taskId
+            ? () => {
+                select(workspaceKey, null);
+                onUseOriginalEngine();
+              }
+            : undefined
+        }
+        text={draft}
+        taskId={taskId}
+        workspacePath={newDirectory || page?.task.workspacePath || workspacePath}
+        workspaceIdentity={workspaceIdentity}
+        images={images}
+        model={chosenModel}
+        models={models}
+        labelForModel={(item) =>
+          aliases[modelAliasKey("codex", "openai", item.model)] || item.displayName || item.model
+        }
+        onModel={(value) => {
+          const next = models.find((item) => item.model === value);
+          if (!next) return;
+          setModel(next.model);
+          setEffort(next.defaultReasoningEffort || "");
+          if (!taskId)
+            useCodexUiStore
+              .getState()
+              .setModelPreference(next.model, next.defaultReasoningEffort || "");
+        }}
+        modelLabel={
+          chosenModel
+            ? aliases[modelAliasKey("codex", "openai", chosenModel.model)] ||
+              chosenModel.displayName ||
+              chosenModel.model
+            : "模型暂不可用"
+        }
+        effort={effort}
+        running={running}
+        busy={busy}
+        onChange={setDraft}
+        onSend={(text) => {
+          void send(text);
+        }}
+        onStop={() => {
+          if (taskId) void service?.interrupt({ taskId }).catch((e) => setLocalError(String(e)));
+        }}
+        onEffort={(value) => {
+          setEffort(value);
+          if (!taskId) useCodexUiStore.getState().setModelPreference(model, value);
+        }}
+        onFiles={(files) => {
+          void addFiles(files);
+        }}
+        onRemoveImage={(index) => setImages((old) => old.filter((_, i) => i !== index))}
+      />
+    </div>
+  );
   return (
     <div
       className="@container/conversation flex h-full min-h-0 flex-col bg-background"
       data-testid="codex-chat-pane"
     >
-      {titleHost &&
+      {taskId &&
+        titleHost &&
         createPortal(
           <CodexTaskHeader
             task={page?.task}
@@ -178,22 +262,13 @@ export function CodexChatPane({
           titleHost,
         )}
       {!taskId ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-foreground-subtle">
-          <h2 className="text-ui-xl font-medium text-foreground">有什么需要一起完成？</h2>
-          <p className="text-ui-caption">描述任务，或从侧栏导入已有对话</p>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              select(workspaceKey, null);
-              onUseOriginalEngine();
-            }}
-          >
-            使用 ZCode 原有引擎新建
-          </Button>
-        </div>
+        <CodexDraftHome onSuggestion={setDraft} onOpenAutomations={onOpenAutomations}>
+          {composer}
+        </CodexDraftHome>
       ) : (
         <CodexTranscript
+          key={taskId}
+          activeTurnId={running ? page?.task.activeTurnId : undefined}
           rows={page?.rows ?? []}
           onSuggestion={setDraft}
           onOpenFileLink={onOpenFileLink}
@@ -207,72 +282,7 @@ export function CodexChatPane({
           }
         />
       )}
-      <div
-        className={cn(
-          "relative mx-auto flex w-full shrink-0 flex-col gap-2 px-4 pb-4",
-          getConversationContentWidthClassName({
-            centeredEmptyLayout: !taskId,
-            statusPanelLayout: "none",
-          }),
-        )}
-      >
-        {page?.approvals.map((approval) => (
-          <CodexApprovalCard key={approval.id} approval={approval} />
-        ))}
-        {(error || localError || page?.task.error) && (
-          <p role="alert" className="rounded-md bg-surface p-2 text-ui-caption text-destructive">
-            {localError || error || page?.task.error}
-          </p>
-        )}
-        <CodexComposer
-          key={draftKey}
-          text={draft}
-          taskId={taskId}
-          workspacePath={newDirectory || page?.task.workspacePath || workspacePath}
-          workspaceIdentity={workspaceIdentity}
-          images={images}
-          model={chosenModel}
-          models={models}
-          labelForModel={(item) =>
-            aliases[modelAliasKey("codex", "openai", item.model)] || item.displayName || item.model
-          }
-          onModel={(value) => {
-            const next = models.find((item) => item.model === value);
-            if (!next) return;
-            setModel(next.model);
-            setEffort(next.defaultReasoningEffort || "");
-            if (!taskId)
-              useCodexUiStore
-                .getState()
-                .setModelPreference(next.model, next.defaultReasoningEffort || "");
-          }}
-          modelLabel={
-            chosenModel
-              ? aliases[modelAliasKey("codex", "openai", chosenModel.model)] ||
-                chosenModel.displayName ||
-                chosenModel.model
-              : "模型暂不可用"
-          }
-          effort={effort}
-          running={running}
-          busy={busy}
-          onChange={setDraft}
-          onSend={(text) => {
-            void send(text);
-          }}
-          onStop={() => {
-            if (taskId) void service?.interrupt({ taskId }).catch((e) => setLocalError(String(e)));
-          }}
-          onEffort={(value) => {
-            setEffort(value);
-            if (!taskId) useCodexUiStore.getState().setModelPreference(model, value);
-          }}
-          onFiles={(files) => {
-            void addFiles(files);
-          }}
-          onRemoveImage={(index) => setImages((old) => old.filter((_, i) => i !== index))}
-        />
-      </div>
+      {taskId && composer}
       <CodexSettings open={settings} onOpenChange={setSettings} />
     </div>
   );

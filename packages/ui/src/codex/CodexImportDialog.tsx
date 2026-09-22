@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog.js";
-import { CodexRowView } from "./CodexTranscript.js";
+import { CodexRowView } from "./CodexRowView.js";
 
 export function CodexImportDialog({
   open,

@@ -28,7 +28,7 @@ export function ConversationUserInputBody({
 }: {
   children: ReactNode;
   contentText: string;
-  rowId: number;
+  rowId: number | string;
 }) {
   const { intl } = useZCodeIntl();
   const contentRef = useRef<HTMLDivElement | null>(null);

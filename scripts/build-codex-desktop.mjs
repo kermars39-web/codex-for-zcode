@@ -9,7 +9,7 @@ import { runtimeLayout } from "../packages/desktop/scripts/codex-runtime-layout.
 const root = resolve(import.meta.dirname, "..");
 runtimeLayout(process.platform, process.arch);
 const mac = process.platform === "darwin";
-const version = process.env.CODEX_FOR_ZCODE_VERSION || "0.1.0-alpha.2";
+const version = process.env.CODEX_FOR_ZCODE_VERSION || "0.1.0-alpha.3";
 if (!/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(version))
   throw new Error("Invalid release version");
 if (Number(process.versions.node.split(".")[0]) < 24) throw new Error("Node 24 is required");
