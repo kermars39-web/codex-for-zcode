@@ -9,7 +9,14 @@ const app = resolve(process.argv[2]);
 const resources = resolve(app, process.platform === "darwin" ? "Contents/Resources" : "resources");
 const runtime = resolve(resources, "codex");
 const layout = runtimeLayout(process.platform, process.arch);
-for (const file of [...layout.files, "codex-package.json", "LICENSE", "NOTICE.txt"])
+for (const file of [
+  ...layout.files,
+  "codex-package.json",
+  "LICENSE",
+  "NOTICE.txt",
+  "codex-NOTICE.txt",
+  "codex-THIRD-PARTY.txt",
+])
   await access(resolve(runtime, file));
 for (const file of [
   "app.asar",

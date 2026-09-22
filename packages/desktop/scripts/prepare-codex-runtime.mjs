@@ -33,6 +33,9 @@ await copyFile(
   resolve(import.meta.dirname, "../licenses/codex-APACHE-2.0.txt"),
   resolve(target, "LICENSE"),
 );
+for (const name of ["codex-NOTICE.txt", "codex-THIRD-PARTY.txt"]) {
+  await copyFile(resolve(import.meta.dirname, "../licenses", name), resolve(target, name));
+}
 await writeFile(
   resolve(target, "NOTICE.txt"),
   `OpenAI Codex CLI ${CODEX_VERSION}\nSource: https://github.com/openai/codex\nLicense: Apache-2.0\nOfficial native package layout and bundled resource notices are retained. Credentials and configuration are not bundled.\n`,

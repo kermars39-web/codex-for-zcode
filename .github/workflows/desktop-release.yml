@@ -87,5 +87,10 @@ jobs:
           cat *.sha256 > SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
           cd ..
-          gh release create v0.1.0-alpha.2 --draft --prerelease --target "$GITHUB_SHA" --title 'v0.1.0-alpha.2 · macOS & Windows preview' --notes-file docs/RELEASE-v0.1.0-alpha.2.md
-          gh release upload v0.1.0-alpha.2 release-assets/*.zip release-assets/*.exe release-assets/SHA256SUMS.txt release-assets/*-smoke.json
+          if gh release view v0.1.0-alpha.2 >/dev/null 2>&1; then
+            test "$(gh release view v0.1.0-alpha.2 --json isDraft --jq .isDraft)" = true
+            gh release edit v0.1.0-alpha.2 --target "$GITHUB_SHA" --notes-file docs/RELEASE-v0.1.0-alpha.2.md
+          else
+            gh release create v0.1.0-alpha.2 --draft --prerelease --target "$GITHUB_SHA" --title 'v0.1.0-alpha.2 · macOS & Windows preview' --notes-file docs/RELEASE-v0.1.0-alpha.2.md
+          fi
+          gh release upload v0.1.0-alpha.2 --clobber release-assets/*.zip release-assets/*.exe release-assets/SHA256SUMS.txt release-assets/*-smoke.json
