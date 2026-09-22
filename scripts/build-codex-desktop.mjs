@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { mkdir, readdir, copyFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, copyFile, writeFile, lstat, readlink } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { runCommand } from "./spawn-command.mjs";
@@ -24,6 +24,24 @@ const env = {
   CSC_IDENTITY_AUTO_DISCOVERY: "false",
 };
 const run = (command, args) => runCommand(command, args, { cwd: root, env });
+async function assertMacFramework(appPath) {
+  // 安装缓存展开相对链接时，Electron 仍能被复制，但 codesign 会判定 framework 格式含糊。
+  // 同时检查来源与产物，拒绝把依赖缓存损坏带入可下载应用。
+  const framework = resolve(appPath, "Contents/Frameworks/Electron Framework.framework");
+  for (const [file, target] of Object.entries({
+    Resources: "Versions/Current/Resources",
+    Libraries: "Versions/Current/Libraries",
+    Helpers: "Versions/Current/Helpers",
+    "Electron Framework": "Versions/Current/Electron Framework",
+    "Versions/Current": "A",
+  })) {
+    const path = resolve(framework, file);
+    if (!(await lstat(path)).isSymbolicLink() || (await readlink(path)) !== target)
+      throw new Error(
+        `Invalid Electron framework link: ${file}; reinstall dependencies with side-effects cache disabled`,
+      );
+  }
+}
 const desktop = resolve(root, "packages/desktop");
 const app = resolve(desktop, mac ? "dist/mac-arm64/Codex for ZCode.app" : "dist/win-unpacked");
 if (mac) {
@@ -45,6 +63,7 @@ if (/from\s*["']@zcode\//.test(readFileSync(resolve(desktop, "out/host/index.js"
   );
 const electron = resolve(root, "node_modules/electron/dist");
 if (!existsSync(electron)) throw new Error("Install Electron before packaging");
+if (mac) await assertMacFramework(resolve(electron, "Electron.app"));
 const builder = [
   "--filter",
   "@zcode/desktop",
@@ -58,6 +77,7 @@ const builder = [
 ];
 run("pnpm", [...builder, "--dir", mac ? "--mac" : "--win", `--${process.arch}`]);
 if (mac) {
+  await assertMacFramework(app);
   run("/usr/bin/codesign", [
     "--force",
     "--deep",

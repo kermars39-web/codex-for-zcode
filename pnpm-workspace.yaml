@@ -3,6 +3,9 @@ packages:
   - apps/zcode-cli
   - apps/zcode-cli/packages/*
   - apps/zcode-cli/tools/*
+# Codex for ZCode: pnpm 的安装产物缓存会展开 Electron framework 符号链接，
+# 导致第二次构建签名失败。保留下载缓存，每次重新执行原生依赖安装脚本。
+sideEffectsCache: false
 supportedArchitectures:
   os:
     - current

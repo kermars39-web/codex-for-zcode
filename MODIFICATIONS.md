@@ -47,3 +47,4 @@ Existing files changed from the upstream baseline are listed below and carry mod
 - `packages/ui/src/store/zcodeSessionStoreNavigation.ts`
 - `packages/ui/src/store/zcodeSessionStoreTypes.ts`
 - `NOTICE.md`
+- `pnpm-workspace.yaml` — disable native postinstall-result caching to preserve Electron framework symlinks.
